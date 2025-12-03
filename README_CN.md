@@ -218,3 +218,4 @@ python src/evaluation/evaluate_model.py
 
 **注意**：本项目是 ECE.GY 6143 机器学习课程的一部分。实施正在进行中，此 README 将随着项目进展而更新。
 
+**Test** 测试权限 --五块
