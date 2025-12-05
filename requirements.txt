@@ -3,6 +3,10 @@ yfinance>=0.2.0
 pandas>=1.3.0
 numpy>=1.21.0
 
+# Data processing dependencies
+h5py>=3.0.0  # For reading H5 format Reddit data (optional, for better performance)
+pytables>=3.7.0  # For pandas HDF5 support (optional, for better performance)
+
 # Optional: for future data processing
 # scikit-learn>=1.0.0
 # torch>=1.10.0
