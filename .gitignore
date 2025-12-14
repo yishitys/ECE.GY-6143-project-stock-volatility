@@ -17,17 +17,22 @@ data/processed/
 data/stock_prices/
 *.csv
 *.h5
+*.zip
+!results/*.csv
+
+# Model files - exclude from data directories but keep in models/
 *.pkl
 *.pth
-*.zip
+!models/*.pkl
+!models/*.pth
 
-# Results (except markdown reports)
-results/figures/
-results/*.csv
+# Results - keep all results files (figures, CSV, reports)
+# results/figures/
+# results/*.csv
 
-# Models (trained models can be regenerated)
-models/*.pth
-models/*.pkl
+# Models - keep trained models
+# models/*.pth
+# models/*.pkl
 
 # IDE
 .vscode/
