@@ -125,10 +125,19 @@ def plot_residuals(
     axes[1, 0].grid(True, alpha=0.3)
     
     # Q-Q图
-    from scipy import stats
-    stats.probplot(residuals, dist="norm", plot=axes[1, 1])
-    axes[1, 1].set_title('Q-Q图（正态性检验）')
-    axes[1, 1].grid(True, alpha=0.3)
+    try:
+        from scipy import stats
+        stats.probplot(residuals, dist="norm", plot=axes[1, 1])
+        axes[1, 1].set_title('Q-Q图（正态性检验）')
+        axes[1, 1].grid(True, alpha=0.3)
+    except Exception as e:
+        # SciPy 可能未安装；保持其它子图可用
+        axes[1, 1].axis('off')
+        axes[1, 1].text(
+            0.5, 0.5,
+            f"Q-Q图不可用（缺少scipy或错误）\n{e}",
+            ha='center', va='center', fontsize=10
+        )
     
     plt.suptitle(title, fontsize=14, y=1.02)
     plt.tight_layout()

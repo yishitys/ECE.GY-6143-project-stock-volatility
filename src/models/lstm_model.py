@@ -244,6 +244,9 @@ class LSTMVolatilityModel:
         """
         logger.info("开始训练LSTM模型...")
         
+        # 训练过程中会保存临时最佳模型，确保目录存在（避免首次运行时崩溃）
+        Path('models').mkdir(parents=True, exist_ok=True)
+        
         # 标准化特征和目标
         X_train_scaled = self.scaler_X.fit_transform(X_train)
         y_train_scaled = self.scaler_y.fit_transform(y_train.reshape(-1, 1)).flatten()
@@ -339,7 +342,7 @@ class LSTMVolatilityModel:
                 if patience_counter >= early_stopping_patience:
                     logger.info(f"早停触发，在第 {epoch+1} 轮停止训练")
                     # 加载最佳模型
-                    self.model.load_state_dict(torch.load('models/lstm_best_temp.pth'))
+                    self.model.load_state_dict(torch.load('models/lstm_best_temp.pth', map_location=self.device))
                     break
             else:
                 if (epoch + 1) % 10 == 0:

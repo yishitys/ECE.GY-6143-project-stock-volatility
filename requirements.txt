@@ -5,7 +5,7 @@ numpy>=1.21.0
 
 # Data processing dependencies
 h5py>=3.0.0  # For reading H5 format Reddit data (optional, for better performance)
-pytables>=3.7.0  # For pandas HDF5 support (optional, for better performance)
+tables>=3.7.0  # For pandas HDF5 support (optional, for better performance) - PyTables package name
 
 # Machine learning dependencies
 scikit-learn>=1.0.0
@@ -17,3 +17,5 @@ lightgbm>=3.3.0
 # Visualization dependencies
 matplotlib>=3.5.0
 seaborn>=0.11.0
+scipy>=1.7.0
+tabulate>=0.9.0  # For pandas DataFrame.to_markdown()

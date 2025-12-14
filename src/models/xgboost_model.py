@@ -144,20 +144,22 @@ class XGBoostVolatilityModel:
         """
         logger.info("开始训练XGBoost模型...")
         
-        # 创建模型
-        self.model = xgb.XGBRegressor(**self.params)
-        
         # 准备验证集
         eval_set = None
         if X_val is not None and y_val is not None:
             eval_set = [(X_train, y_train), (X_val, y_val)]
+        
+        # 创建模型（XGBoost 3.x: early_stopping_rounds goes in constructor)
+        model_params = self.params.copy()
+        if eval_set and early_stopping_rounds:
+            model_params['early_stopping_rounds'] = early_stopping_rounds
+        self.model = xgb.XGBRegressor(**model_params)
         
         # 训练
         self.model.fit(
             X_train,
             y_train,
             eval_set=eval_set,
-            early_stopping_rounds=early_stopping_rounds if eval_set else None,
             verbose=verbose
         )
         
@@ -210,9 +212,14 @@ class XGBoostVolatilityModel:
         }
         
         # 方向准确率（预测波动率增加/减少的方向）
-        y_diff = y.diff()
-        y_pred_diff = pd.Series(y_pred).diff()
-        directional_accuracy = (np.sign(y_diff) == np.sign(y_pred_diff)).mean() * 100
+        # 注意：不能用 pandas 对齐索引比较（会引入大量 NaN），用位置对齐的 numpy diff
+        y_arr = np.asarray(y)
+        y_diff = np.diff(y_arr)
+        y_pred_diff = np.diff(np.asarray(y_pred))
+        if len(y_diff) > 0:
+            directional_accuracy = (np.sign(y_diff) == np.sign(y_pred_diff)).mean() * 100
+        else:
+            directional_accuracy = 0.0
         metrics['directional_accuracy'] = directional_accuracy
         
         logger.info("模型评估结果:")

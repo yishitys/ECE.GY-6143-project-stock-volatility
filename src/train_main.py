@@ -26,7 +26,8 @@ from evaluation.visualize_results import (
     plot_predictions_vs_actual,
     plot_residuals,
     plot_error_distribution,
-    plot_feature_importance
+    plot_feature_importance,
+    plot_model_comparison
 )
 
 # 配置日志
@@ -235,6 +236,11 @@ def main():
     # 训练模型
     all_results = {}
     
+    # 确保输出目录存在
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    Path(os.path.join(args.output_dir, 'figures')).mkdir(parents=True, exist_ok=True)
+    Path(args.model_dir).mkdir(parents=True, exist_ok=True)
+    
     if args.model in ['xgboost', 'both']:
         logger.info("\n" + "="*60)
         logger.info("训练XGBoost模型")
@@ -269,9 +275,9 @@ def main():
         y_test = y.iloc[split_idx:]
         
         y_pred = xgboost_model.predict(X_test)
-        timestamps = df['timestamp'].iloc[split_idx:split_idx+len(y_pred)]
+        # 注意：X/y 在 prepare_features() 中可能过滤了 NaN，必须用 X_test 的索引对齐时间戳
+        timestamps = df.loc[X_test.index, 'timestamp']
         
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         plot_predictions_vs_actual(
             y_test.values, y_pred,
             timestamps=timestamps,
@@ -325,7 +331,16 @@ def main():
         # 生成可视化
         logger.info("\n生成LSTM模型可视化...")
         df = pd.read_csv(features_path, parse_dates=['timestamp'])
-        X, y = lstm_model.prepare_features(df, target_col=args.target)
+        # LSTM 的 prepare_features 会过滤 NaN，需要同时保留有效行索引用于时间戳对齐
+        exclude_cols = ['timestamp', 'stock_symbol', 'has_reddit_data', 'has_stock_data']
+        exclude_cols = exclude_cols + [col for col in df.columns if col.startswith('target_')]
+        feature_cols = [col for col in df.columns if col not in exclude_cols]
+        X_raw = df[feature_cols].values
+        y_raw = df[args.target].values
+        valid_mask = ~(np.isnan(X_raw).any(axis=1) | np.isnan(y_raw))
+        valid_idx = df.index[valid_mask]
+        X = X_raw[valid_mask]
+        y = y_raw[valid_mask]
         
         # 划分测试集
         split_idx = int(len(X) * 0.85)
@@ -333,9 +348,8 @@ def main():
         y_test = y[split_idx:]
         
         y_pred = lstm_model.predict(X_test)
-        timestamps = df['timestamp'].iloc[split_idx:split_idx+len(y_pred)]
+        timestamps = df.loc[valid_idx[split_idx:split_idx+len(y_pred)], 'timestamp']
         
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         plot_predictions_vs_actual(
             y_test, y_pred,
             timestamps=timestamps,
