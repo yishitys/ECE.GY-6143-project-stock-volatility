@@ -1,7 +1,7 @@
 """
-训练主脚本
+Training Main Script
 
-支持数据划分、交叉验证、超参数调优和模型训练。
+Supports data splitting, cross-validation, hyperparameter tuning, and model training.
 """
 
 import pandas as pd
@@ -43,19 +43,19 @@ def split_data_temporal(
     test_ratio: float = 0.15
 ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
     """
-    按时间顺序划分数据集（时间序列数据必须保持时间顺序）
+    Split dataset by time order (time series data must maintain time order)
     
     Args:
-        X: 特征DataFrame
-        y: 目标变量Series
-        train_ratio: 训练集比例
-        val_ratio: 验证集比例
-        test_ratio: 测试集比例
+        X: Feature DataFrame
+        y: Target variable Series
+        train_ratio: Training set ratio
+        val_ratio: Validation set ratio
+        test_ratio: Test set ratio
     
     Returns:
         (X_train, y_train, X_val, y_val, X_test, y_test)
     """
-    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, "比例之和必须为1"
+    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, "Sum of ratios must be 1"
     
     n = len(X)
     train_end = int(n * train_ratio)
@@ -70,10 +70,10 @@ def split_data_temporal(
     X_test = X.iloc[val_end:]
     y_test = y.iloc[val_end:]
     
-    logger.info(f"数据划分完成:")
-    logger.info(f"  训练集: {len(X_train)} 样本 ({len(X_train)/n*100:.1f}%)")
-    logger.info(f"  验证集: {len(X_val)} 样本 ({len(X_val)/n*100:.1f}%)")
-    logger.info(f"  测试集: {len(X_test)} 样本 ({len(X_test)/n*100:.1f}%)")
+    logger.info(f"Data split complete:")
+    logger.info(f"  Train: {len(X_train)} samples ({len(X_train)/n*100:.1f}%)")
+    logger.info(f"  Val: {len(X_val)} samples ({len(X_val)/n*100:.1f}%)")
+    logger.info(f"  Test: {len(X_test)} samples ({len(X_test)/n*100:.1f}%)")
     
     return X_train, y_train, X_val, y_val, X_test, y_test
 
@@ -108,7 +108,7 @@ def time_series_cross_validation(
         'r2': []
     }
     
-    logger.info(f"开始 {n_splits} 折时间序列交叉验证...")
+    logger.info(f"Starting {n_splits}-fold time series cross-validation...")
     
     for fold, (train_idx, val_idx) in enumerate(tscv.split(X)):
         logger.info(f"Fold {fold + 1}/{n_splits}")

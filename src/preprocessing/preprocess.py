@@ -1,13 +1,13 @@
 """
-主预处理脚本
+Main Preprocessing Script
 
-整合所有预处理步骤：
-1. 加载Reddit数据
-2. 清洗文本
-3. 加载股票价格数据
-4. 时间戳对齐
-5. 合并数据
-6. 保存结果
+Integrates all preprocessing steps:
+1. Load Reddit data
+2. Clean text
+3. Load stock price data
+4. Align timestamps
+5. Merge data
+6. Save results
 """
 
 import pandas as pd
@@ -19,7 +19,7 @@ from pathlib import Path
 
 # 导入数据加载模块
 import sys
-# 添加src目录到路径
+# Add src directory to path
 src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
@@ -27,7 +27,7 @@ if src_dir not in sys.path:
 from data_loading.load_reddit_data import load_multiple_subreddits
 from data_loading.load_stock_data import download_stock_data
 
-# 导入预处理模块
+# Import preprocessing modules
 from .clean_text import clean_reddit_data
 from .align_timestamps import group_reddit_by_hour, align_stock_to_hourly
 from .merge_data import (
@@ -38,7 +38,7 @@ from .merge_data import (
 )
 from .generate_report import generate_preprocessing_report
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'

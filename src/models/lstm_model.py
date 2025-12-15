@@ -1,7 +1,7 @@
 """
-LSTM时间序列模型
+LSTM Time Series Model
 
-实现LSTM模型用于波动率预测。
+Implements LSTM model for volatility prediction.
 """
 
 import pandas as pd
@@ -33,22 +33,22 @@ logger = logging.getLogger(__name__)
 
 
 class TimeSeriesDataset(Dataset):
-    """时间序列数据集"""
+    """Time series dataset"""
     
     def __init__(self, X: np.ndarray, y: np.ndarray, sequence_length: int = 24):
         """
-        初始化数据集
+        Initialize dataset
         
         Args:
-            X: 特征数组，形状为 (n_samples, n_features)
-            y: 目标数组，形状为 (n_samples,)
-            sequence_length: 序列长度（时间窗口大小）
+            X: Feature array, shape (n_samples, n_features)
+            y: Target array, shape (n_samples,)
+            sequence_length: Sequence length (time window size)
         """
         self.sequence_length = sequence_length
         self.X = X
         self.y = y
         
-        # 创建序列
+        # Create sequences
         self.sequences = []
         self.targets = []
         
@@ -59,7 +59,7 @@ class TimeSeriesDataset(Dataset):
         self.sequences = np.array(self.sequences)
         self.targets = np.array(self.targets)
         
-        logger.info(f"创建了 {len(self.sequences)} 个序列（序列长度: {sequence_length}）")
+        logger.info(f"Created {len(self.sequences)} sequences (sequence length: {sequence_length})")
     
     def __len__(self):
         return len(self.sequences)
@@ -80,21 +80,21 @@ class LSTMModel(nn.Module):
         output_size: int = 1
     ):
         """
-        初始化LSTM模型
+        Initialize LSTM model
         
         Args:
-            input_size: 输入特征维度
-            hidden_size: LSTM隐藏层大小
-            num_layers: LSTM层数
-            dropout: Dropout比例
-            output_size: 输出维度（通常为1，回归任务）
+            input_size: Input feature dimension
+            hidden_size: LSTM hidden layer size
+            num_layers: Number of LSTM layers
+            dropout: Dropout ratio
+            output_size: Output dimension (usually 1 for regression)
         """
         super(LSTMModel, self).__init__()
         
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # LSTM层
+        # LSTM layer
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
@@ -103,7 +103,7 @@ class LSTMModel(nn.Module):
             batch_first=True
         )
         
-        # 全连接层
+        # Fully connected layer
         self.fc = nn.Linear(hidden_size, output_size)
         self.dropout = nn.Dropout(dropout)
         

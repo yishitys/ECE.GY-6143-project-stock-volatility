@@ -280,6 +280,15 @@ ECE.GY-6143-project-stock-volatility/
 git clone <repository-url>
 cd ECE.GY-6143-project-stock-volatility
 
+# Create virtual environment (recommended)
+# For Windows (PowerShell):
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# For macOS/Linux:
+python -m venv .venv
+source .venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
 
@@ -299,7 +308,27 @@ cd ../..
 
 ## Usage
 
-### Data Loading
+### Quick Start - Full Pipeline (Recommended)
+
+The easiest way to train a model end-to-end:
+
+```bash
+# Train XGBoost model
+python src/train_main.py --symbol GME --model xgboost
+
+# Train LSTM model
+python src/train_main.py --symbol GME --model lstm
+
+# Train both models and compare
+python src/train_main.py --symbol GME --model both
+
+# Show all available options
+python src/train_main.py --help
+```
+
+### Step-by-Step Usage
+
+#### Data Loading
 ```bash
 # Load and preprocess Reddit data from data/raw/
 python src/data_loading/load_reddit_data.py --subreddits stocks wallstreetbets
@@ -356,6 +385,25 @@ python src/evaluation/evaluate.py --model_path results/models/best_model.pkl
 ### Challenge 5: Missing Data
 **Solution**: Handle missing stock price data (weekends, holidays). Use forward-fill or interpolation for missing values. Add binary indicators for data availability.
 
+## Environment Setup
+
+### Kaggle API Configuration
+To download the Reddit dataset from Kaggle:
+
+1. Go to https://www.kaggle.com/settings/account
+2. Click "Create New API Token" (downloads `kaggle.json`)
+3. Place the file in your home directory:
+   - Windows: `C:\Users\<YourUsername>\.kaggle\kaggle.json`
+   - macOS/Linux: `~/.kaggle/kaggle.json`
+4. Set appropriate permissions:
+   ```bash
+   chmod 600 ~/.kaggle/kaggle.json  # macOS/Linux
+   ```
+
+### Python Version
+- Python 3.8 or higher recommended
+- Project tested with Python 3.10
+
 ## Dependencies
 
 - Python 3.8+
@@ -367,9 +415,28 @@ python src/evaluation/evaluate.py --model_path results/models/best_model.pkl
 - **Visualization**: matplotlib, seaborn, plotly
 - **Utilities**: tqdm, pyyaml
 
+All dependencies are listed in [requirements.txt](requirements.txt) and will be installed with `pip install -r requirements.txt`
+
 ## Results
 
-*(To be updated after model training)*
+### Latest Model Performance (GME Stock, Test Set)
+
+**LSTM Model**:
+- RMSE: 0.094915
+- MAE: 0.075621
+- R²: 0.9890
+- Directional Accuracy: 95.96%
+- Correlation: 0.9945
+
+The LSTM model achieves excellent predictive performance on volatility forecasting. See [results/professor_report.md](results/professor_report.md) for detailed comparison with baseline models.
+
+**Generated Reports**:
+- [Evaluation Report](results/evaluation_report_test.md)
+- [Model Comparison Report](results/professor_report.md)
+- [Metrics Summary](results/metrics_summary.md)
+- [Feature Report](data/processed/feature_report_GME.md)
+- [Preprocessing Report](data/processed/preprocessing_report.md)
+- [Target Analysis](data/processed/target_analysis_GME.md)
 
 ## References
 
@@ -383,6 +450,38 @@ python src/evaluation/evaluate.py --model_path results/models/best_model.pkl
 ## License
 
 *(To be determined)*
+
+## Troubleshooting
+
+### Common Issues
+
+**"kaggle: command not found" or "kaggle is not recognized"**
+- Solution: Install kaggle: `pip install kaggle`
+- Then set up your Kaggle API credentials (see Environment Setup section)
+
+**"ModuleNotFoundError: No module named X"**
+- Solution: Reinstall dependencies: `pip install -r requirements.txt`
+- Make sure you're in the correct virtual environment
+
+**Embedding generation takes too long**
+- This is expected - embedding generation can take 30 minutes to several hours
+- Embeddings are cached after generation
+- You can skip embedding generation if using cached data with `--no-embeddings` flag
+
+**"Out of memory" errors**
+- For embedding generation: Consider reducing batch size or processing fewer posts
+- For model training: Use a smaller dataset or increase GPU memory
+
+**Stock price data not loading**
+- Check internet connection (yfinance requires online access)
+- Verify ticker symbol is correct (e.g., "GME", "AAPL")
+- Try alternate data source: Alpha Vantage API
+
+### Getting Help
+
+- Check existing issues in the repository
+- Review the generated reports in `results/` directory for diagnostic information
+- Ensure all data files are in correct locations under `data/` directory
 
 ## Contact
 

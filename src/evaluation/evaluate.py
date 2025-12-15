@@ -1,7 +1,7 @@
 """
-模型评估模块
+Model Evaluation Module
 
-计算各种评估指标：RMSE, MAE, R², MAPE, 方向准确率等。
+Calculates evaluation metrics: RMSE, MAE, R², MAPE, directional accuracy, etc.
 """
 
 import pandas as pd
@@ -21,7 +21,7 @@ except ImportError:
     SKLEARN_AVAILABLE = False
     logging.warning("scikit-learn not available")
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -34,30 +34,30 @@ def calculate_regression_metrics(
     y_pred: np.ndarray
 ) -> Dict[str, float]:
     """
-    计算回归评估指标
+    Calculate regression evaluation metrics
     
     Args:
-        y_true: 真实值
-        y_pred: 预测值
+        y_true: True values
+        y_pred: Predicted values
     
     Returns:
-        评估指标字典
+        Evaluation metrics dictionary
     """
     if not SKLEARN_AVAILABLE:
         raise ImportError("scikit-learn is required for evaluation")
     
-    # 确保长度一致
+    # Ensure consistent length
     min_len = min(len(y_true), len(y_pred))
     y_true = y_true[:min_len]
     y_pred = y_pred[:min_len]
     
-    # 移除NaN值
+    # Remove NaN values
     valid_mask = ~(np.isnan(y_true) | np.isnan(y_pred))
     y_true = y_true[valid_mask]
     y_pred = y_pred[valid_mask]
     
     if len(y_true) == 0:
-        logger.warning("没有有效数据用于评估")
+        logger.warning("No valid data for evaluation")
         return {}
     
     metrics = {
@@ -67,7 +67,7 @@ def calculate_regression_metrics(
         'mape': np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
     }
     
-    # 方向准确率
+    # Directional accuracy
     if len(y_true) > 1:
         y_true_diff = np.diff(y_true)
         y_pred_diff = np.diff(y_pred)
@@ -76,7 +76,7 @@ def calculate_regression_metrics(
     else:
         metrics['directional_accuracy'] = 0.0
     
-    # 相关系数
+    # Correlation coefficient
     if len(y_true) > 1:
         correlation = np.corrcoef(y_true, y_pred)[0, 1]
         metrics['correlation'] = correlation
@@ -92,20 +92,20 @@ def calculate_classification_metrics(
     y_pred_proba: Optional[np.ndarray] = None
 ) -> Dict[str, float]:
     """
-    计算分类评估指标
+    Calculate classification evaluation metrics
     
     Args:
-        y_true: 真实标签
-        y_pred: 预测标签
-        y_pred_proba: 预测概率（用于计算AUC）
+        y_true: True labels
+        y_pred: Predicted labels
+        y_pred_proba: Predicted probabilities (for AUC calculation)
     
     Returns:
-        评估指标字典
+        Evaluation metrics dictionary
     """
     if not SKLEARN_AVAILABLE:
         raise ImportError("scikit-learn is required for evaluation")
     
-    # 确保长度一致
+    # Ensure consistent length
     min_len = min(len(y_true), len(y_pred))
     y_true = y_true[:min_len]
     y_pred = y_pred[:min_len]
@@ -119,22 +119,22 @@ def calculate_classification_metrics(
         'f1': f1_score(y_true, y_pred, average='weighted', zero_division=0)
     }
     
-    # AUC（如果有概率预测）
+    # AUC (if probability predictions available)
     if y_pred_proba is not None and len(np.unique(y_true)) > 1:
         try:
             if len(np.unique(y_true)) == 2:
-                # 二分类
+                # Binary classification
                 metrics['roc_auc'] = roc_auc_score(y_true, y_pred_proba)
             else:
-                # 多分类
+                # Multi-class classification
                 metrics['roc_auc'] = roc_auc_score(y_true, y_pred_proba, multi_class='ovr')
         except Exception as e:
-            logger.warning(f"无法计算AUC: {e}")
+            logger.warning(f"Cannot calculate AUC: {e}")
             metrics['roc_auc'] = 0.0
     else:
         metrics['roc_auc'] = 0.0
     
-    # 混淆矩阵
+    # Confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     metrics['confusion_matrix'] = cm.tolist()
     
@@ -148,35 +148,35 @@ def evaluate_model(
     y_pred_proba: Optional[np.ndarray] = None
 ) -> Dict[str, float]:
     """
-    评估模型（自动选择回归或分类指标）
+    Evaluate model (automatically select regression or classification metrics)
     
     Args:
-        y_true: 真实值
-        y_pred: 预测值
-        task_type: 任务类型 ('regression' 或 'classification')
-        y_pred_proba: 预测概率（仅用于分类任务）
+        y_true: True values
+        y_pred: Predicted values
+        task_type: Task type ('regression' or 'classification')
+        y_pred_proba: Predicted probabilities (for classification tasks only)
     
     Returns:
-        评估指标字典
+        Dictionary with evaluation metrics
     """
     if task_type == 'regression':
         return calculate_regression_metrics(y_true, y_pred)
     elif task_type == 'classification':
         return calculate_classification_metrics(y_true, y_pred, y_pred_proba)
     else:
-        raise ValueError(f"未知的任务类型: {task_type}")
+        raise ValueError(f"Unknown task type: {task_type}")
 
 
 def print_metrics(metrics: Dict[str, float], task_type: str = 'regression'):
     """
-    打印评估指标
+    Print evaluation metrics
     
     Args:
-        metrics: 评估指标字典
-        task_type: 任务类型
+        metrics: Dictionary with evaluation metrics
+        task_type: Task type
     """
     logger.info("="*60)
-    logger.info("模型评估结果")
+    logger.info("Model Evaluation Results")
     logger.info("="*60)
     
     if task_type == 'regression':
@@ -184,13 +184,13 @@ def print_metrics(metrics: Dict[str, float], task_type: str = 'regression'):
         logger.info(f"MAE: {metrics.get('mae', 0):.6f}")
         logger.info(f"R²: {metrics.get('r2', 0):.4f}")
         logger.info(f"MAPE: {metrics.get('mape', 0):.2f}%")
-        logger.info(f"方向准确率: {metrics.get('directional_accuracy', 0):.2f}%")
-        logger.info(f"相关系数: {metrics.get('correlation', 0):.4f}")
+        logger.info(f"Directional Accuracy: {metrics.get('directional_accuracy', 0):.2f}%")
+        logger.info(f"Correlation Coefficient: {metrics.get('correlation', 0):.4f}")
     else:
-        logger.info(f"准确率: {metrics.get('accuracy', 0):.4f}")
-        logger.info(f"精确率: {metrics.get('precision', 0):.4f}")
-        logger.info(f"召回率: {metrics.get('recall', 0):.4f}")
-        logger.info(f"F1分数: {metrics.get('f1', 0):.4f}")
+        logger.info(f"Accuracy: {metrics.get('accuracy', 0):.4f}")
+        logger.info(f"Precision: {metrics.get('precision', 0):.4f}")
+        logger.info(f"Recall: {metrics.get('recall', 0):.4f}")
+        logger.info(f"F1 Score: {metrics.get('f1', 0):.4f}")
         logger.info(f"ROC-AUC: {metrics.get('roc_auc', 0):.4f}")
 
 
@@ -202,72 +202,72 @@ def save_evaluation_report(
     stock_symbol: str = 'GME'
 ):
     """
-    保存评估报告
+    Save evaluation report
     
     Args:
-        metrics: 评估指标字典
-        output_path: 输出文件路径
-        task_type: 任务类型
-        model_name: 模型名称
-        stock_symbol: 股票代码
+        metrics: Dictionary with evaluation metrics
+        output_path: Output file path
+        task_type: Task type
+        model_name: Model name
+        stock_symbol: Stock symbol
     """
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     
     if task_type == 'regression':
-        report = f"""# 模型评估报告
+        report = f"""# Model Evaluation Report
 
-**模型**: {model_name}
-**股票代码**: {stock_symbol}
-**任务类型**: 回归（波动率预测）
-**生成时间**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
-
----
-
-## 评估指标
-
-| 指标 | 数值 |
-|------|------|
-| RMSE (均方根误差) | {metrics.get('rmse', 0):.6f} |
-| MAE (平均绝对误差) | {metrics.get('mae', 0):.6f} |
-| R² (决定系数) | {metrics.get('r2', 0):.4f} |
-| MAPE (平均绝对百分比误差) | {metrics.get('mape', 0):.2f}% |
-| 方向准确率 | {metrics.get('directional_accuracy', 0):.2f}% |
-| 相关系数 | {metrics.get('correlation', 0):.4f} |
+**Model**: {model_name}
+**Stock Symbol**: {stock_symbol}
+**Task Type**: Regression (Volatility Prediction)
+**Generated Time**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ---
 
-## 说明
+## Evaluation Metrics
 
-- **RMSE**: 预测值与真实值之间的均方根误差，越小越好
-- **MAE**: 预测值与真实值之间的平均绝对误差，越小越好
-- **R²**: 决定系数，表示模型解释的方差比例，越接近1越好
-- **MAPE**: 平均绝对百分比误差，越小越好
-- **方向准确率**: 预测波动率变化方向的准确率，越高越好
-- **相关系数**: 预测值与真实值之间的线性相关系数，越接近1越好
+| Metric | Value |
+|--------|--------|
+| RMSE (Root Mean Square Error) | {metrics.get('rmse', 0):.6f} |
+| MAE (Mean Absolute Error) | {metrics.get('mae', 0):.6f} |
+| R² (Coefficient of Determination) | {metrics.get('r2', 0):.4f} |
+| MAPE (Mean Absolute Percentage Error) | {metrics.get('mape', 0):.2f}% |
+| Directional Accuracy | {metrics.get('directional_accuracy', 0):.2f}% |
+| Correlation Coefficient | {metrics.get('correlation', 0):.4f} |
+
+---
+
+## Notes
+
+- **RMSE**: Root mean square error between predictions and true values, lower is better
+- **MAE**: Mean absolute error between predictions and true values, lower is better
+- **R²**: Coefficient of determination, represents proportion of variance explained by model, closer to 1 is better
+- **MAPE**: Mean absolute percentage error, lower is better
+- **Directional Accuracy**: Accuracy of predicting volatility change direction, higher is better
+- **Correlation Coefficient**: Linear correlation coefficient between predictions and true values, closer to 1 is better
 """
     else:
-        report = f"""# 模型评估报告
+        report = f"""# Model Evaluation Report
 
-**模型**: {model_name}
-**股票代码**: {stock_symbol}
-**任务类型**: 分类
-**生成时间**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Model**: {model_name}
+**Stock Symbol**: {stock_symbol}
+**Task Type**: Classification
+**Generated Time**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ---
 
-## 评估指标
+## Evaluation Metrics
 
-| 指标 | 数值 |
-|------|------|
-| 准确率 | {metrics.get('accuracy', 0):.4f} |
-| 精确率 | {metrics.get('precision', 0):.4f} |
-| 召回率 | {metrics.get('recall', 0):.4f} |
-| F1分数 | {metrics.get('f1', 0):.4f} |
+| Metric | Value |
+|--------|--------|
+| Accuracy | {metrics.get('accuracy', 0):.4f} |
+| Precision | {metrics.get('precision', 0):.4f} |
+| Recall | {metrics.get('recall', 0):.4f} |
+| F1 Score | {metrics.get('f1', 0):.4f} |
 | ROC-AUC | {metrics.get('roc_auc', 0):.4f} |
 
 ---
 
-## 混淆矩阵
+## Confusion Matrix
 
 {np.array(metrics.get('confusion_matrix', [])).__str__()}
 """
@@ -275,23 +275,23 @@ def save_evaluation_report(
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(report)
     
-    logger.info(f"评估报告已保存到: {output_path}")
+    logger.info(f"Evaluation report saved to: {output_path}")
 
 
 if __name__ == '__main__':
-    # 测试代码
-    # 生成示例数据
+    # Test code
+    # Generate sample data
     np.random.seed(42)
     y_true = np.random.randn(100)
     y_pred = y_true + np.random.randn(100) * 0.1
     
-    # 计算指标
+    # Calculate metrics
     metrics = calculate_regression_metrics(y_true, y_pred)
     
-    # 打印结果
+    # Print results
     print_metrics(metrics, task_type='regression')
     
-    # 保存报告
+    # Save report
     save_evaluation_report(metrics, 'results/evaluation_report_test.md', 
                           model_name='Test Model', stock_symbol='GME')
 

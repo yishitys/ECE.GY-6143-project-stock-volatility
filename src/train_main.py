@@ -1,7 +1,7 @@
 """
-统一训练入口
+Unified Training Entry Point
 
-整合所有组件，提供命令行接口进行模型训练和评估。
+Integrates all components and provides command-line interface for model training and evaluation.
 """
 
 import pandas as pd
@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-# 添加src目录到路径
+# Add src directory to path
 src_dir = os.path.dirname(os.path.abspath(__file__))
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
@@ -30,7 +30,7 @@ from evaluation.visualize_results import (
     plot_model_comparison
 )
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -54,42 +54,42 @@ def train_lstm_model(
     model_output_dir: str = 'models'
 ):
     """
-    训练LSTM模型
+    Train LSTM model
     
     Args:
-        stock_symbol: 股票代码
-        features_path: 特征数据路径
-        target_col: 目标变量列名
-        train_ratio: 训练集比例
-        val_ratio: 验证集比例
-        test_ratio: 测试集比例
-        sequence_length: 序列长度
-        hidden_size: 隐藏层大小
-        num_layers: LSTM层数
-        epochs: 训练轮数
-        batch_size: 批处理大小
-        save_model: 是否保存模型
-        model_output_dir: 模型输出目录
+        stock_symbol: Stock symbol
+        features_path: Features data path
+        target_col: Target variable column name
+        train_ratio: Training set ratio
+        val_ratio: Validation set ratio
+        test_ratio: Test set ratio
+        sequence_length: Sequence length
+        hidden_size: Hidden layer size
+        num_layers: Number of LSTM layers
+        epochs: Number of training epochs
+        batch_size: Batch size
+        save_model: Whether to save the model
+        model_output_dir: Model output directory
     
     Returns:
-        (训练好的模型, 评估结果字典)
+        (Trained model, evaluation results dictionary)
     """
     logger.info("="*60)
-    logger.info(f"开始训练LSTM模型: {stock_symbol}")
+    logger.info(f"Starting LSTM model training: {stock_symbol}")
     logger.info("="*60)
     
-    # 加载特征数据
+    # Load features data
     if features_path is None:
         features_path = f'data/processed/features_{stock_symbol}.csv'
     
     if not os.path.exists(features_path):
-        raise FileNotFoundError(f"特征数据文件不存在: {features_path}")
+        raise FileNotFoundError(f"Features data file does not exist: {features_path}")
     
-    logger.info(f"加载特征数据: {features_path}")
+    logger.info(f"Loading features data: {features_path}")
     df = pd.read_csv(features_path, parse_dates=['timestamp'])
-    logger.info(f"加载了 {len(df)} 条记录")
+    logger.info(f"Loaded {len(df)} records")
     
-    # 创建模型
+    # Create model
     model = LSTMVolatilityModel(
         sequence_length=sequence_length,
         hidden_size=hidden_size,
@@ -97,10 +97,10 @@ def train_lstm_model(
         batch_size=batch_size
     )
     
-    # 准备特征
+    # Prepare features
     X, y = model.prepare_features(df, target_col=target_col)
     
-    # 划分数据集
+    # Split dataset
     n = len(X)
     train_end = int(n * train_ratio)
     val_end = int(n * (train_ratio + val_ratio))
@@ -112,34 +112,34 @@ def train_lstm_model(
     X_test = X[val_end:]
     y_test = y[val_end:]
     
-    logger.info(f"数据划分: 训练集={len(X_train)}, 验证集={len(X_val)}, 测试集={len(X_test)}")
+    logger.info(f"Data split: train={len(X_train)}, val={len(X_val)}, test={len(X_test)}")
     
-    # 训练
+    # Train
     model.train(X_train, y_train, X_val, y_val, epochs=epochs)
     
-    # 评估
-    logger.info("\n训练集评估:")
+    # Evaluate
+    logger.info("\nTraining set evaluation:")
     y_train_pred = model.predict(X_train)
     train_metrics = evaluate_model(y_train, y_train_pred, task_type='regression')
     print_metrics(train_metrics, task_type='regression')
     
-    logger.info("\n验证集评估:")
+    logger.info("\nValidation set evaluation:")
     y_val_pred = model.predict(X_val)
     val_metrics = evaluate_model(y_val, y_val_pred, task_type='regression')
     print_metrics(val_metrics, task_type='regression')
     
-    logger.info("\n测试集评估:")
+    logger.info("\nTest set evaluation:")
     y_test_pred = model.predict(X_test)
     test_metrics = evaluate_model(y_test, y_test_pred, task_type='regression')
     print_metrics(test_metrics, task_type='regression')
     
-    # 保存模型
+    # Save model
     if save_model:
         Path(model_output_dir).mkdir(parents=True, exist_ok=True)
         model_path = os.path.join(model_output_dir, f'lstm_{stock_symbol}.pth')
         model.save(model_path)
     
-    # 汇总结果
+    # Aggregate results
     results = {
         'train_metrics': train_metrics,
         'val_metrics': val_metrics,
@@ -155,59 +155,59 @@ def train_lstm_model(
 
 
 def main():
-    """主函数"""
+    """Main function"""
     parser = argparse.ArgumentParser(
-        description='股票波动率预测模型训练脚本',
+        description='Stock volatility prediction model training script',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-示例:
-  # 训练XGBoost模型
+Examples:
+  # Train XGBoost model
   python train_main.py --symbol GME --model xgboost
   
-  # 训练LSTM模型
+  # Train LSTM model
   python train_main.py --symbol GME --model lstm
   
-  # 先进行特征工程，再训练模型
+  # First perform feature engineering, then train model
   python train_main.py --symbol GME --model xgboost --build-features
   
-  # 训练两个模型并对比
+  # Train both models and compare
   python train_main.py --symbol GME --model both
         """
     )
     
-    parser.add_argument('--symbol', type=str, default='GME', help='股票代码')
+    parser.add_argument('--symbol', type=str, default='GME', help='Stock symbol')
     parser.add_argument('--model', type=str, choices=['xgboost', 'lstm', 'both'], 
-                       default='xgboost', help='模型类型')
+                       default='xgboost', help='Model type')
     parser.add_argument('--build-features', action='store_true',
-                       help='是否先进行特征工程（如果特征数据不存在）')
+                       help='Whether to perform feature engineering first (if features do not exist)')
     parser.add_argument('--features', type=str, default=None,
-                       help='特征数据路径（如果为None则自动生成）')
+                       help='Feature data path (auto-generate if None)')
     parser.add_argument('--target', type=str, default='target_volatility_log_return_abs',
-                       help='目标变量列名')
+                       help='Target variable column name')
     parser.add_argument('--output-dir', type=str, default='results',
-                       help='结果输出目录')
+                       help='Result output directory')
     parser.add_argument('--model-dir', type=str, default='models',
-                       help='模型保存目录')
+                       help='Model save directory')
     
-    # XGBoost参数
+    # XGBoost parameters
     parser.add_argument('--xgboost-params', type=str, default=None,
-                       help='XGBoost参数字典（JSON格式）')
+                       help='XGBoost parameter dictionary (JSON format)')
     parser.add_argument('--cv', action='store_true',
-                       help='进行交叉验证（仅XGBoost）')
+                       help='Perform cross-validation (XGBoost only)')
     parser.add_argument('--tune', action='store_true',
-                       help='进行超参数调优（仅XGBoost）')
+                       help='Perform hyperparameter tuning (XGBoost only)')
     
-    # LSTM参数
+    # LSTM parameters
     parser.add_argument('--sequence-length', type=int, default=24,
-                       help='LSTM序列长度（小时数）')
+                       help='LSTM sequence length (hours)')
     parser.add_argument('--hidden-size', type=int, default=64,
-                       help='LSTM隐藏层大小')
+                       help='LSTM hidden layer size')
     parser.add_argument('--num-layers', type=int, default=2,
-                       help='LSTM层数')
+                       help='Number of LSTM layers')
     parser.add_argument('--epochs', type=int, default=50,
-                       help='训练轮数（LSTM）')
+                       help='Number of training epochs (LSTM)')
     parser.add_argument('--batch-size', type=int, default=32,
-                       help='批处理大小（LSTM）')
+                       help='Batch size (LSTM)')
     
     args = parser.parse_args()
     

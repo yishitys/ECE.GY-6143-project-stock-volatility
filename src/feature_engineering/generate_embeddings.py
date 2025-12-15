@@ -40,15 +40,15 @@ class EmbeddingGenerator:
         cache_dir: str = 'data/processed/embeddings'
     ):
         """
-        初始化嵌入生成器
+        Initialize embedding generator
         
         Args:
-            model_name: sentence-transformers模型名称
-                - 'all-MiniLM-L6-v2': 384维，快速，推荐用于大量数据
-                - 'all-mpnet-base-v2': 768维，更准确但更慢
-            device: 计算设备 ('cpu' 或 'cuda')
-            batch_size: 批处理大小
-            cache_dir: 缓存目录
+            model_name: sentence-transformers model name
+                - 'all-MiniLM-L6-v2': 384-dim, fast, recommended for large datasets
+                - 'all-mpnet-base-v2': 768-dim, more accurate but slower
+            device: Computing device ('cpu' or 'cuda')
+            batch_size: Batch size
+            cache_dir: Cache directory
         """
         if not SENTENCE_TRANSFORMERS_AVAILABLE:
             raise ImportError("sentence-transformers is required. Install it: pip install sentence-transformers")

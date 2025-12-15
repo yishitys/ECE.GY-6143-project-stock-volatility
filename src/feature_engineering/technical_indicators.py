@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 
 def calculate_returns(df: pd.DataFrame, close_col: str, method: str = 'simple') -> pd.Series:
     """
-    计算收益率
+    Calculate returns
     
     Args:
-        df: 包含价格数据的DataFrame
-        close_col: 收盘价列名
-        method: 计算方法 ('simple' 或 'log')
+        df: DataFrame containing price data
+        close_col: Close price column name
+        method: Calculation method ('simple' or 'log')
     
     Returns:
-        收益率序列
+        Returns series
     """
     if method == 'simple':
         return df[close_col].pct_change()
@@ -39,45 +39,45 @@ def calculate_returns(df: pd.DataFrame, close_col: str, method: str = 'simple') 
 
 def calculate_sma(df: pd.DataFrame, price_col: str, window: int) -> pd.Series:
     """
-    计算简单移动平均 (Simple Moving Average)
+    Calculate Simple Moving Average (SMA)
     
     Args:
-        df: 包含价格数据的DataFrame
-        price_col: 价格列名
-        window: 窗口大小（小时数）
+        df: DataFrame containing price data
+        price_col: Price column name
+        window: Window size (hours)
     
     Returns:
-        移动平均序列
+        Moving average series
     """
     return df[price_col].rolling(window=window, min_periods=1).mean()
 
 
 def calculate_ema(df: pd.DataFrame, price_col: str, window: int) -> pd.Series:
     """
-    计算指数移动平均 (Exponential Moving Average)
+    Calculate Exponential Moving Average (EMA)
     
     Args:
-        df: 包含价格数据的DataFrame
-        price_col: 价格列名
-        window: 窗口大小（小时数）
+        df: DataFrame containing price data
+        price_col: Price column name
+        window: Window size (hours)
     
     Returns:
-        指数移动平均序列
+        Exponential moving average series
     """
     return df[price_col].ewm(span=window, adjust=False).mean()
 
 
 def calculate_rsi(df: pd.DataFrame, price_col: str, window: int = 14) -> pd.Series:
     """
-    计算相对强弱指标 (Relative Strength Index, RSI)
+    Calculate Relative Strength Index (RSI)
     
     Args:
-        df: 包含价格数据的DataFrame
-        price_col: 价格列名
-        window: 窗口大小，默认14
+        df: DataFrame containing price data
+        price_col: Price column name
+        window: Window size, default 14
     
     Returns:
-        RSI序列（0-100）
+        RSI series (0-100)
     """
     delta = df[price_col].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=window, min_periods=1).mean()
@@ -227,7 +227,7 @@ def calculate_technical_indicators(
             volume_cols = [col for col in df.columns if col.endswith('_volume')]
         volume_col = volume_cols[0] if volume_cols else None
     
-    # 默认窗口大小
+    # Default window sizes
     if windows is None:
         windows = {
             'sma': [5, 10, 20],

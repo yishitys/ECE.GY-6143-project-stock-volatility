@@ -1,8 +1,8 @@
 """
-特征聚合模块
+Feature Aggregation Module
 
-将帖子级嵌入向量聚合为小时级特征。
-支持多种聚合策略：mean pooling, weighted mean, max pooling等。
+Aggregates post-level embedding vectors into hourly-level features.
+Supports multiple aggregation strategies: mean pooling, weighted mean, max pooling, etc.
 """
 
 import pandas as pd
@@ -21,14 +21,14 @@ logger = logging.getLogger(__name__)
 
 def mean_pooling(embeddings: np.ndarray, weights: Optional[np.ndarray] = None) -> np.ndarray:
     """
-    平均池化：计算嵌入向量的平均值
+    Mean pooling: Calculate average of embedding vectors
     
     Args:
-        embeddings: 嵌入向量数组，形状为 (n_posts, embedding_dim)
-        weights: 权重数组，形状为 (n_posts,)，如果为None则使用均匀权重
+        embeddings: Embedding vector array, shape (n_posts, embedding_dim)
+        weights: Weight array, shape (n_posts,), if None use uniform weights
     
     Returns:
-        聚合后的嵌入向量，形状为 (embedding_dim,)
+        Aggregated embedding vector, shape (embedding_dim,)
     """
     if embeddings is None or len(embeddings) == 0:
         return None
@@ -43,13 +43,13 @@ def mean_pooling(embeddings: np.ndarray, weights: Optional[np.ndarray] = None) -
 
 def max_pooling(embeddings: np.ndarray) -> np.ndarray:
     """
-    最大池化：取每个维度的最大值
+    Max pooling: Take the maximum value of each dimension
     
     Args:
-        embeddings: 嵌入向量数组，形状为 (n_posts, embedding_dim)
+        embeddings: Embedding vector array, shape (n_posts, embedding_dim)
     
     Returns:
-        聚合后的嵌入向量，形状为 (embedding_dim,)
+        Aggregated embedding vector, shape (embedding_dim,)
     """
     if embeddings is None or len(embeddings) == 0:
         return None
@@ -62,14 +62,14 @@ def weighted_mean_pooling(
     weights: np.ndarray
 ) -> np.ndarray:
     """
-    加权平均池化
+    Weighted mean pooling
     
     Args:
-        embeddings: 嵌入向量数组
-        weights: 权重数组
+        embeddings: Embedding vector array
+        weights: Weight array
     
     Returns:
-        聚合后的嵌入向量
+        Aggregated embedding vector
     """
     return mean_pooling(embeddings, weights)
 

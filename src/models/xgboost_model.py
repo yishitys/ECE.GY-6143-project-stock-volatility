@@ -1,7 +1,7 @@
 """
-XGBoost基线模型
+XGBoost Baseline Model
 
-实现XGBoost回归模型用于波动率预测。
+Implements XGBoost regression model for volatility prediction.
 """
 
 import pandas as pd

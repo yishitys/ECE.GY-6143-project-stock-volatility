@@ -1,7 +1,7 @@
 """
-时间戳对齐模块
+Timestamp Alignment Module
 
-将Reddit数据和股票价格数据按小时对齐，处理时区差异和交易时间窗口。
+Aligns Reddit data and stock price data by hour, handles timezone differences and trading time windows.
 """
 
 import pandas as pd
@@ -20,20 +20,20 @@ logger = logging.getLogger(__name__)
 
 def group_reddit_by_hour(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> pd.DataFrame:
     """
-    将Reddit数据按小时分组
+    Group Reddit data by hour
     
     Args:
-        df: 包含时间戳列的Reddit数据DataFrame
-        timestamp_col: 时间戳列名，默认为'timestamp'
+        df: Reddit data DataFrame with timestamp column
+        timestamp_col: Name of timestamp column, default is 'timestamp'
     
     Returns:
-        按小时聚合的DataFrame，包含：
-        - timestamp: 小时级时间戳（UTC）
-        - post_count: 该小时的帖子数量
-        - total_comments: 该小时的总评论数
-        - total_score: 该小时的总分数
-        - unique_authors: 该小时的唯一作者数
-        - posts: 该小时的所有帖子ID列表（可选）
+        DataFrame aggregated by hour, contains:
+        - timestamp: Hourly timestamp (UTC)
+        - post_count: Number of posts in this hour
+        - total_comments: Total comments in this hour
+        - total_score: Total score in this hour
+        - unique_authors: Number of unique authors in this hour
+        - posts: List of all post IDs in this hour (optional)
     """
     if df is None or df.empty:
         logger.warning("Empty DataFrame provided")
@@ -57,7 +57,7 @@ def group_reddit_by_hour(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
         'id': 'count',  # 帖子数量
     }
     
-    # 添加可选的聚合列
+    # Add optional aggregation columns
     if 'num_comments' in df.columns:
         agg_dict['num_comments'] = 'sum'
     if 'score' in df.columns:
@@ -65,10 +65,10 @@ def group_reddit_by_hour(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
     if 'author' in df.columns:
         agg_dict['author'] = 'nunique'
     
-    # 执行聚合
+    # Perform aggregation
     grouped = df.groupby('hour').agg(agg_dict)
     
-    # 重命名列
+    # Rename columns
     new_columns = ['post_count']
     if 'num_comments' in df.columns:
         new_columns.append('total_comments')
@@ -79,11 +79,11 @@ def group_reddit_by_hour(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
     
     grouped.columns = new_columns
     
-    # 重置索引，将hour作为列
+    # Reset index, make hour a column
     grouped = grouped.reset_index()
     grouped.rename(columns={'hour': 'timestamp'}, inplace=True)
     
-    # 确保时间戳有时区信息（UTC）
+    # Ensure timestamp has timezone information (UTC)
     if grouped['timestamp'].dt.tz is None:
         grouped['timestamp'] = grouped['timestamp'].dt.tz_localize('UTC')
     else:
@@ -97,14 +97,14 @@ def group_reddit_by_hour(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
 
 def align_stock_to_hourly(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> pd.DataFrame:
     """
-    确保股票数据按小时对齐
+    Ensure stock data is aligned to hourly intervals
     
     Args:
-        df: 股票价格数据DataFrame
-        timestamp_col: 时间戳列名，默认为'timestamp'
+        df: Stock price data DataFrame
+        timestamp_col: Name of timestamp column, default is 'timestamp'
     
     Returns:
-        按小时对齐的股票数据DataFrame
+        Stock data DataFrame aligned to hourly intervals
     """
     if df is None or df.empty:
         logger.warning("Empty DataFrame provided")
@@ -164,20 +164,20 @@ def create_hourly_index(
     timezone: str = 'UTC'
 ) -> pd.DatetimeIndex:
     """
-    创建完整的小时级时间戳索引
+    Create complete hourly timestamp index
     
     Args:
-        start_date: 开始日期 (YYYY-MM-DD)
-        end_date: 结束日期 (YYYY-MM-DD)，包含该日期
-        timezone: 时区，默认为'UTC'
+        start_date: Start date (YYYY-MM-DD)
+        end_date: End date (YYYY-MM-DD), inclusive
+        timezone: Timezone, default is 'UTC'
     
     Returns:
-        小时级DatetimeIndex
+        Hourly DatetimeIndex
     """
     start = pd.to_datetime(start_date).tz_localize(timezone)
     end = pd.to_datetime(end_date).tz_localize(timezone) + pd.Timedelta(days=1)
     
-    # 创建每小时的时间戳
+    # Create hourly timestamps
     hourly_index = pd.date_range(start=start, end=end, freq='H', tz=timezone)
     
     logger.info(f"Created hourly index: {len(hourly_index)} hours from {start} to {end}")
@@ -187,16 +187,16 @@ def create_hourly_index(
 
 def filter_trading_hours(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> pd.DataFrame:
     """
-    过滤出交易时间的数据（美国股市：9:30 AM - 4:00 PM EST，转换为UTC）
+    Filter data to trading hours (US stock market: 9:30 AM - 4:00 PM EST, convert to UTC)
     
-    注意：这个函数假设数据已经是UTC时区
+    Note: This function assumes data is already in UTC timezone
     
     Args:
-        df: 包含时间戳的DataFrame
-        timestamp_col: 时间戳列名
+        df: DataFrame with timestamp column
+        timestamp_col: Name of timestamp column
     
     Returns:
-        过滤后的DataFrame（仅包含交易时间）
+        Filtered DataFrame (only trading hours)
     """
     if df is None or df.empty:
         return df

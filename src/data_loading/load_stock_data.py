@@ -1,8 +1,8 @@
 """
-股票价格数据收集脚本
+Stock Price Data Collection Script
 
-从Yahoo Finance获取历史股票价格数据（每小时粒度），用于与Reddit数据对齐。
-时间范围：2021年全年（2021-01-01 至 2021-12-31）
+Fetches historical stock price data from Yahoo Finance (hourly granularity) for alignment with Reddit data.
+Time range: Full year 2021 (2021-01-01 to 2021-12-31)
 """
 
 import yfinance as yf

@@ -1,8 +1,8 @@
 """
-Reddit数据加载脚本
+Reddit Data Loading Script
 
-从本地CSV/H5文件加载Reddit提交数据，过滤无效帖子，解析时间戳，为后续的特征工程和模型训练做准备。
-时间范围：2021年全年（2021-01-01 至 2021-12-31）
+Loads Reddit submission data from local CSV/H5 files, filters invalid posts, parses timestamps, and prepares for feature engineering and model training.
+Time range: Full year 2021 (2021-01-01 to 2021-12-31)
 """
 
 import pandas as pd

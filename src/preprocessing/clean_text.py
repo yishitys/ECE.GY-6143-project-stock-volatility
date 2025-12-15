@@ -1,7 +1,7 @@
 """
-Reddit文本清洗模块
+Reddit Text Cleaning Module
 
-清理Reddit文本内容，移除URL、特殊字符、多余空格等。
+Cleans Reddit text content by removing URLs, special characters, excess whitespace, etc.
 """
 
 import pandas as pd
@@ -19,33 +19,33 @@ logger = logging.getLogger(__name__)
 
 def clean_text_content(text: str) -> str:
     """
-    清洗单个文本内容
+    Clean a single text content
     
     Args:
-        text: 原始文本字符串
+        text: Original text string
     
     Returns:
-        清洗后的文本字符串
+        Cleaned text string
     """
     if not isinstance(text, str) or not text:
         return ""
     
-    # 移除URL
+    # Remove URLs
     text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', text)
     text = re.sub(r'www\.(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', text)
     
-    # 移除Reddit特定的标记
+    # Remove Reddit-specific markers
     text = re.sub(r'\[removed\]', '', text, flags=re.IGNORECASE)
     text = re.sub(r'\[deleted\]', '', text, flags=re.IGNORECASE)
     
-    # 移除特殊字符（保留字母、数字、基本标点）
-    # 保留：字母、数字、空格、基本标点符号
-    text = re.sub(r'[^\w\s.,!?;:()\-\'"]', ' ', text)
+    # Remove special characters (keep letters, numbers, basic punctuation)
+    # Keep: letters, numbers, spaces, basic punctuation symbols
+    text = re.sub(r'[^\w\s.,!?;:()'\-'\"'  "]+', ' ', text)
     
-    # 移除多余的空格
+    # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text)
     
-    # 移除首尾空格
+    # Remove leading and trailing whitespace
     text = text.strip()
     
     return text
@@ -53,14 +53,14 @@ def clean_text_content(text: str) -> str:
 
 def clean_reddit_data(df: pd.DataFrame, text_column: str = 'text_content') -> pd.DataFrame:
     """
-    批量清洗Reddit数据
+    Batch clean Reddit data
     
     Args:
-        df: 包含文本列的DataFrame
-        text_column: 要清洗的文本列名，默认为'text_content'
+        df: DataFrame containing text column
+        text_column: Name of text column to clean, default is 'text_content'
     
     Returns:
-        清洗后的DataFrame，添加了'text_cleaned'列
+        Cleaned DataFrame with added 'text_cleaned' column
     """
     if df is None or df.empty:
         logger.warning("Empty DataFrame provided")
@@ -72,13 +72,13 @@ def clean_reddit_data(df: pd.DataFrame, text_column: str = 'text_content') -> pd
     
     logger.info(f"Cleaning text content for {len(df)} posts...")
     
-    # 创建副本以避免修改原始数据
+    # Create a copy to avoid modifying the original data
     df_cleaned = df.copy()
     
-    # 清洗文本内容
+    # Clean text content
     df_cleaned['text_cleaned'] = df_cleaned[text_column].apply(clean_text_content)
     
-    # 统计清洗结果
+    # Statistics from cleaning
     original_lengths = df_cleaned[text_column].str.len()
     cleaned_lengths = df_cleaned['text_cleaned'].str.len()
     
@@ -87,7 +87,7 @@ def clean_reddit_data(df: pd.DataFrame, text_column: str = 'text_content') -> pd
     
     logger.info(f"Average text length: {avg_original:.1f} -> {avg_cleaned:.1f} characters")
     
-    # 移除完全为空的内容（虽然之前已经过滤过，但这里再次确保）
+    # Remove completely empty content (already filtered before, but ensure here)
     empty_count = (df_cleaned['text_cleaned'].str.len() == 0).sum()
     if empty_count > 0:
         logger.warning(f"Found {empty_count} posts with empty text after cleaning")
@@ -98,14 +98,14 @@ def clean_reddit_data(df: pd.DataFrame, text_column: str = 'text_content') -> pd
 
 def remove_stopwords(text: str, stopwords: Optional[list] = None) -> str:
     """
-    移除停用词（可选功能）
+    Remove stopwords (optional feature)
     
     Args:
-        text: 文本字符串
-        stopwords: 停用词列表，如果为None则不处理
+        text: Text string
+        stopwords: List of stopwords, if None then no processing
     
     Returns:
-        移除停用词后的文本
+        Text with stopwords removed
     """
     if not stopwords or not text:
         return text
@@ -117,24 +117,24 @@ def remove_stopwords(text: str, stopwords: Optional[list] = None) -> str:
 
 def normalize_text(text: str) -> str:
     """
-    标准化文本（可选功能）
+    Normalize text (optional feature)
     
-    - 转换为小写
-    - 标准化空格
+    - Convert to lowercase
+    - Normalize whitespace
     
     Args:
-        text: 文本字符串
+        text: Text string
     
     Returns:
-        标准化后的文本
+        Normalized text
     """
     if not text:
         return ""
     
-    # 转换为小写
+    # Convert to lowercase
     text = text.lower()
     
-    # 标准化空格
+    # Normalize whitespace
     text = re.sub(r'\s+', ' ', text).strip()
     
     return text

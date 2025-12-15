@@ -1,7 +1,7 @@
 """
-数据合并模块
+Data Merging Module
 
-合并Reddit讨论量数据和股票价格数据，按小时时间戳对齐。
+Merges Reddit discussion volume data and stock price data, aligned by hourly timestamp.
 """
 
 import pandas as pd
@@ -25,17 +25,17 @@ def merge_reddit_and_stock(
     timestamp_col: str = 'timestamp'
 ) -> pd.DataFrame:
     """
-    合并Reddit讨论量数据和股票价格数据
+    Merge Reddit discussion volume data and stock price data
     
     Args:
-        reddit_df: Reddit数据DataFrame（已按小时聚合）
-        stock_df: 股票价格数据DataFrame（已按小时对齐）
-        stock_symbol: 股票代码
-        merge_type: 合并类型，'inner'（内连接）或'left'（左连接），默认为'inner'
-        timestamp_col: 时间戳列名，默认为'timestamp'
+        reddit_df: Reddit data DataFrame (already aggregated by hour)
+        stock_df: Stock price data DataFrame (already aligned by hour)
+        stock_symbol: Stock symbol
+        merge_type: Merge type, 'inner' (inner join) or 'left' (left join), default is 'inner'
+        timestamp_col: Name of timestamp column, default is 'timestamp'
     
     Returns:
-        合并后的DataFrame
+        Merged DataFrame
     """
     if reddit_df is None or reddit_df.empty:
         logger.warning("Empty Reddit DataFrame provided")
@@ -47,7 +47,7 @@ def merge_reddit_and_stock(
     
     logger.info(f"Merging Reddit data ({len(reddit_df)} hours) with {stock_symbol} stock data ({len(stock_df)} hours)...")
     
-    # 确保时间戳列存在且格式正确
+    # Ensure timestamp column exists and is correctly formatted
     if timestamp_col not in reddit_df.columns:
         logger.error(f"Timestamp column '{timestamp_col}' not found in Reddit DataFrame")
         return pd.DataFrame()
@@ -56,14 +56,14 @@ def merge_reddit_and_stock(
         logger.error(f"Timestamp column '{timestamp_col}' not found in stock DataFrame")
         return pd.DataFrame()
     
-    # 确保时间戳是datetime类型
+    # Ensure timestamp is datetime type
     reddit_df = reddit_df.copy()
     stock_df = stock_df.copy()
     
     reddit_df[timestamp_col] = pd.to_datetime(reddit_df[timestamp_col])
     stock_df[timestamp_col] = pd.to_datetime(stock_df[timestamp_col])
     
-    # 确保时区一致（UTC）
+    # Ensure timezone consistency (UTC)
     if reddit_df[timestamp_col].dt.tz is None:
         reddit_df[timestamp_col] = reddit_df[timestamp_col].dt.tz_localize('UTC')
     else:
@@ -74,7 +74,7 @@ def merge_reddit_and_stock(
     else:
         stock_df[timestamp_col] = stock_df[timestamp_col].dt.tz_convert('UTC')
     
-    # 重命名股票数据列，添加股票代码前缀
+    # Rename stock data columns, add stock symbol prefix
     stock_columns = {}
     for col in stock_df.columns:
         if col != timestamp_col:
@@ -82,7 +82,7 @@ def merge_reddit_and_stock(
     
     stock_df_renamed = stock_df.rename(columns=stock_columns)
     
-    # 执行合并
+    # Perform merge
     if merge_type == 'inner':
         merged_df = pd.merge(
             reddit_df,
@@ -104,7 +104,7 @@ def merge_reddit_and_stock(
     logger.info(f"Merged data: {len(merged_df)} hours")
     logger.info(f"Time range: {merged_df[timestamp_col].min()} to {merged_df[timestamp_col].max()}")
     
-    # 添加股票代码列
+    # Add stock symbol column
     merged_df['stock_symbol'] = stock_symbol
     
     return merged_df
@@ -112,26 +112,26 @@ def merge_reddit_and_stock(
 
 def handle_missing_values(df: pd.DataFrame, fill_method: str = 'forward') -> pd.DataFrame:
     """
-    处理合并后数据中的缺失值
+    Handle missing values in merged data
     
     Args:
-        df: 合并后的DataFrame
-        fill_method: 填充方法
-            - 'forward': 前向填充
-            - 'backward': 后向填充
-            - 'zero': 用0填充
-            - 'mean': 用均值填充
-            - 'drop': 删除缺失值行
+        df: Merged DataFrame
+        fill_method: Fill method
+            - 'forward': Forward fill
+            - 'backward': Backward fill
+            - 'zero': Fill with 0
+            - 'mean': Fill with mean
+            - 'drop': Drop rows with missing values
     
     Returns:
-        处理后的DataFrame
+        Processed DataFrame
     """
     if df is None or df.empty:
         return df
     
     df = df.copy()
     
-    # 统计缺失值
+    # Count missing values
     missing_before = df.isnull().sum().sum()
     logger.info(f"Missing values before handling: {missing_before}")
     
@@ -139,7 +139,7 @@ def handle_missing_values(df: pd.DataFrame, fill_method: str = 'forward') -> pd.
         logger.info("No missing values to handle")
         return df
     
-    # 按列处理缺失值
+    # Process missing values by column
     numeric_columns = df.select_dtypes(include=[np.number]).columns
     
     if fill_method == 'forward':
@@ -156,7 +156,7 @@ def handle_missing_values(df: pd.DataFrame, fill_method: str = 'forward') -> pd.
         logger.warning(f"Unknown fill_method: {fill_method}, using forward fill")
         df[numeric_columns] = df[numeric_columns].ffill()
     
-    # 统计处理后的缺失值
+    # Count missing values after handling
     missing_after = df.isnull().sum().sum()
     logger.info(f"Missing values after handling: {missing_after}")
     

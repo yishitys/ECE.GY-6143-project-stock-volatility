@@ -1,7 +1,7 @@
 """
-结果可视化模块
+Results Visualization Module
 
-生成预测结果的可视化图表。
+Generates visualization plots for prediction results.
 """
 
 import pandas as pd
@@ -34,16 +34,16 @@ def plot_predictions_vs_actual(
     title: str = '预测值 vs 实际值'
 ):
     """
-    绘制预测值与实际值的对比图
+    Plot predictions vs actual values comparison chart
     
     Args:
-        y_true: 真实值
-        y_pred: 预测值
-        timestamps: 时间戳（可选）
-        output_path: 输出文件路径
-        title: 图表标题
+        y_true: True values
+        y_pred: Predicted values
+        timestamps: Timestamps (optional)
+        output_path: Output file path
+        title: Chart title
     """
-    # 确保长度一致
+    # Ensure consistent length
     min_len = min(len(y_true), len(y_pred))
     y_true = y_true[:min_len]
     y_pred = y_pred[:min_len]
@@ -54,15 +54,15 @@ def plot_predictions_vs_actual(
     fig, ax = plt.subplots(figsize=(12, 6))
     
     if timestamps is not None:
-        ax.plot(timestamps, y_true, label='实际值', alpha=0.7, linewidth=1.5)
-        ax.plot(timestamps, y_pred, label='预测值', alpha=0.7, linewidth=1.5)
-        ax.set_xlabel('时间')
+        ax.plot(timestamps, y_true, label='Actual', alpha=0.7, linewidth=1.5)
+        ax.plot(timestamps, y_pred, label='Predicted', alpha=0.7, linewidth=1.5)
+        ax.set_xlabel('Time')
     else:
-        ax.plot(y_true, label='实际值', alpha=0.7, linewidth=1.5)
-        ax.plot(y_pred, label='预测值', alpha=0.7, linewidth=1.5)
-        ax.set_xlabel('样本索引')
+        ax.plot(y_true, label='Actual', alpha=0.7, linewidth=1.5)
+        ax.plot(y_pred, label='Predicted', alpha=0.7, linewidth=1.5)
+        ax.set_xlabel('Sample Index')
     
-    ax.set_ylabel('波动率')
+    ax.set_ylabel('Volatility')
     ax.set_title(title)
     ax.legend()
     ax.grid(True, alpha=0.3)
@@ -73,7 +73,7 @@ def plot_predictions_vs_actual(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"预测对比图已保存到: {output_path}")
+    logger.info(f"Prediction comparison plot saved to: {output_path}")
 
 
 def plot_residuals(
@@ -83,13 +83,13 @@ def plot_residuals(
     title: str = '残差分析'
 ):
     """
-    绘制残差分析图
+    Plot residual analysis chart
     
     Args:
-        y_true: 真实值
-        y_pred: 预测值
-        output_path: 输出文件路径
-        title: 图表标题
+        y_true: True values
+        y_pred: Predicted values
+        output_path: Output file path
+        title: Chart title
     """
     # 确保长度一致
     min_len = min(len(y_true), len(y_pred))
@@ -146,7 +146,7 @@ def plot_residuals(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"残差分析图已保存到: {output_path}")
+    logger.info(f"Residual analysis plot saved to: {output_path}")
 
 
 def plot_error_distribution(
@@ -202,7 +202,7 @@ def plot_error_distribution(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"误差分布图已保存到: {output_path}")
+    logger.info(f"Error distribution plot saved to: {output_path}")
 
 
 def plot_feature_importance(
@@ -239,7 +239,7 @@ def plot_feature_importance(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"特征重要性图已保存到: {output_path}")
+    logger.info(f"Feature importance plot saved to: {output_path}")
 
 
 def plot_model_comparison(
@@ -285,7 +285,7 @@ def plot_model_comparison(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"模型对比图已保存到: {output_path}")
+    logger.info(f"Model comparison plot saved to: {output_path}")
 
 
 if __name__ == '__main__':
