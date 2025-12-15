@@ -1,8 +1,8 @@
 """
-文本嵌入生成模块
+Text Embedding Generation Module
 
-使用sentence-transformers为Reddit帖子生成文本嵌入向量。
-支持批量处理和缓存机制。
+Generate text embeddings for Reddit posts using sentence-transformers.
+Supports batch processing and caching mechanisms.
 """
 
 import pandas as pd
@@ -14,7 +14,7 @@ from typing import Optional, List, Tuple
 from tqdm import tqdm
 import pickle
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -30,7 +30,7 @@ except ImportError:
 
 
 class EmbeddingGenerator:
-    """文本嵌入生成器"""
+    """Text embedding generator"""
     
     def __init__(
         self,
@@ -70,14 +70,14 @@ class EmbeddingGenerator:
         show_progress: bool = True
     ) -> np.ndarray:
         """
-        为文本列表生成嵌入向量
+        Generate embeddings for list of texts
         
         Args:
-            texts: 文本列表
-            show_progress: 是否显示进度条
+            texts: List of texts
+            show_progress: Whether to show progress bar
         
         Returns:
-            嵌入向量数组，形状为 (n_texts, embedding_dim)
+            Embedding vector array, shape (n_texts, embedding_dim)
         """
         if not texts:
             return np.array([])
@@ -119,16 +119,16 @@ class EmbeddingGenerator:
         cache_file: Optional[str] = None
     ) -> pd.DataFrame:
         """
-        为Reddit帖子生成嵌入向量
+        Generate embeddings for Reddit posts
         
         Args:
-            df: 包含帖子文本的DataFrame
-            text_col: 文本列名
-            post_id_col: 帖子ID列名
-            cache_file: 缓存文件路径（可选）
+            df: DataFrame containing post texts
+            text_col: Text column name
+            post_id_col: Post ID column name
+            cache_file: Cache file path (optional)
         
         Returns:
-            包含嵌入向量的DataFrame
+            DataFrame with embeddings
         """
         if df is None or df.empty:
             logger.warning("Empty DataFrame provided")
@@ -137,7 +137,7 @@ class EmbeddingGenerator:
         if text_col not in df.columns:
             raise ValueError(f"Text column '{text_col}' not found in DataFrame")
         
-        # 检查缓存
+        # Check cache
         if cache_file and os.path.exists(cache_file):
             logger.info(f"Loading embeddings from cache: {cache_file}")
             try:

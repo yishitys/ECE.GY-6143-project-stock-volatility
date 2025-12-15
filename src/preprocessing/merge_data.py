@@ -9,7 +9,7 @@ import numpy as np
 import logging
 from typing import Optional, Tuple
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -165,29 +165,29 @@ def handle_missing_values(df: pd.DataFrame, fill_method: str = 'forward') -> pd.
 
 def add_data_availability_flags(df: pd.DataFrame) -> pd.DataFrame:
     """
-    添加数据可用性标志
+    Add data availability flags
     
     Args:
-        df: 合并后的DataFrame
+        df: Merged DataFrame
     
     Returns:
-        添加了标志列的DataFrame
+        DataFrame with added flag columns
     """
     if df is None or df.empty:
         return df
     
     df = df.copy()
     
-    # 检查Reddit数据可用性
+    # Check Reddit data availability
     if 'post_count' in df.columns:
         df['has_reddit_data'] = (df['post_count'] > 0).astype(int)
     else:
         df['has_reddit_data'] = 0
     
-    # 检查股票数据可用性（假设有close列）
+    # Check stock data availability (assume close column exists)
     stock_price_cols = [col for col in df.columns if '_close' in col or 'close' in col.lower()]
     if stock_price_cols:
-        # 使用第一个找到的价格列
+        # Use the first price column found
         price_col = stock_price_cols[0]
         df['has_stock_data'] = df[price_col].notna().astype(int)
     else:
@@ -202,11 +202,11 @@ def add_data_availability_flags(df: pd.DataFrame) -> pd.DataFrame:
 
 def validate_merged_data(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> bool:
     """
-    验证合并后数据的完整性
+    Validate integrity of merged data
     
     Args:
-        df: 合并后的DataFrame
-        timestamp_col: 时间戳列名
+        df: Merged DataFrame
+        timestamp_col: Timestamp column name
     
     Returns:
         True if data is valid, False otherwise
@@ -219,10 +219,10 @@ def validate_merged_data(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
     logger.info("Merged Data Validation Report")
     logger.info("="*50)
     
-    # 基本统计
+    # Basic statistics
     logger.info(f"Total records: {len(df)}")
     
-    # 检查时间戳
+    # Check timestamp column
     if timestamp_col not in df.columns:
         logger.error(f"Timestamp column '{timestamp_col}' not found")
         return False
@@ -231,30 +231,30 @@ def validate_merged_data(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
     max_ts = df[timestamp_col].max()
     logger.info(f"Time range: {min_ts} to {max_ts}")
     
-    # 检查时间戳是否连续（可选）
+    # Check if timestamps are continuous (optional)
     df_sorted = df.sort_values(timestamp_col)
     time_diffs = df_sorted[timestamp_col].diff()
     expected_diff = pd.Timedelta(hours=1)
     
-    # 允许一些时间间隔不是正好1小时（由于交易时间等）
-    non_hourly = (time_diffs != expected_diff).sum() - 1  # 减去第一个NaN
+    # Allow some time intervals that are not exactly 1 hour apart (due to trading hours etc.)
+    non_hourly = (time_diffs != expected_diff).sum() - 1  # Subtract first NaN
     if non_hourly > 0:
         logger.info(f"Note: {non_hourly} time intervals are not exactly 1 hour apart (expected for trading hours)")
     
-    # 检查必需的列
+    # Check required columns
     required_columns = [timestamp_col]
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
         logger.error(f"Missing required columns: {missing_columns}")
         return False
     
-    # 检查缺失值
+    # Check missing values
     logger.info("\nMissing values by column:")
     missing = df.isnull().sum()
     for col, count in missing[missing > 0].items():
         logger.info(f"  {col}: {count} ({count/len(df)*100:.1f}%)")
     
-    # 检查数据列
+    # Check data columns
     if 'post_count' in df.columns:
         logger.info(f"\nReddit data statistics:")
         logger.info(f"  Total posts: {df['post_count'].sum()}")
@@ -262,11 +262,11 @@ def validate_merged_data(df: pd.DataFrame, timestamp_col: str = 'timestamp') -> 
         logger.info(f"  Hours with posts: {(df['post_count'] > 0).sum()}")
         logger.info(f"  Hours without posts: {(df['post_count'] == 0).sum()}")
     
-    # 检查股票价格列
+    # Check stock price columns
     price_cols = [col for col in df.columns if 'close' in col.lower() or 'price' in col.lower()]
     if price_cols:
         logger.info(f"\nStock data statistics:")
-        for col in price_cols[:3]:  # 只显示前3个
+        for col in price_cols[:3]:  # Show only first 3
             if df[col].notna().sum() > 0:
                 logger.info(f"  {col}: {df[col].notna().sum()} non-null values")
     

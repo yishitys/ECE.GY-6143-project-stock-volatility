@@ -11,7 +11,7 @@ import logging
 from typing import Optional, List, Dict, Tuple
 from pathlib import Path
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -36,8 +36,8 @@ def mean_pooling(embeddings: np.ndarray, weights: Optional[np.ndarray] = None) -
     if weights is None:
         return np.mean(embeddings, axis=0)
     else:
-        # 加权平均
-        weights = weights / (weights.sum() + 1e-8)  # 归一化权重
+        # Weighted average
+        weights = weights / (weights.sum() + 1e-8)  # Normalize weights
         return np.average(embeddings, axis=0, weights=weights)
 
 
@@ -83,24 +83,24 @@ def aggregate_embeddings_by_hour(
     post_id_col: str = 'id'
 ) -> pd.DataFrame:
     """
-    将帖子级嵌入向量按小时聚合
+    Aggregate post-level embeddings by hour
     
     Args:
-        posts_df: 包含嵌入向量的帖子DataFrame
-        timestamp_col: 时间戳列名
-        embedding_prefix: 嵌入列名前缀（例如 'embedding_'）
-        aggregation_method: 聚合方法 ('mean', 'weighted_mean', 'max')
-        weight_col: 权重列名（用于weighted_mean），例如 'score' 或 'num_comments'
-        post_id_col: 帖子ID列名
+        posts_df: DataFrame containing embeddings
+        timestamp_col: Timestamp column name
+        embedding_prefix: Embedding column name prefix (e.g., 'embedding_')
+        aggregation_method: Aggregation method ('mean', 'weighted_mean', 'max')
+        weight_col: Weight column name (for weighted_mean), e.g., 'score' or 'num_comments'
+        post_id_col: Post ID column name
     
     Returns:
-        按小时聚合的DataFrame，包含聚合后的嵌入特征
+        Hourly aggregated DataFrame with aggregated embedding features
     """
     if posts_df is None or posts_df.empty:
         logger.warning("Empty DataFrame provided")
         return pd.DataFrame()
     
-    # 找到所有嵌入列
+    # Find all embedding columns
     embedding_cols = [col for col in posts_df.columns if col.startswith(embedding_prefix)]
     if not embedding_cols:
         raise ValueError(f"No embedding columns found with prefix '{embedding_prefix}'")
@@ -108,7 +108,7 @@ def aggregate_embeddings_by_hour(
     logger.info(f"Found {len(embedding_cols)} embedding columns")
     logger.info(f"Aggregation method: {aggregation_method}")
     
-    # 确保时间戳列存在且为datetime类型
+    # Ensure timestamp column exists and is datetime type
     if timestamp_col not in posts_df.columns:
         raise ValueError(f"Timestamp column '{timestamp_col}' not found")
     
@@ -116,19 +116,19 @@ def aggregate_embeddings_by_hour(
     if not pd.api.types.is_datetime64_any_dtype(df[timestamp_col]):
         df[timestamp_col] = pd.to_datetime(df[timestamp_col])
     
-    # 按小时分组
+    # Group by hour
     df['hour'] = df[timestamp_col].dt.floor('H')
     
-    # 聚合嵌入向量
+    # Aggregate embeddings
     aggregated_data = []
     
     for hour, group in df.groupby('hour'):
         hour_data = {'timestamp': hour}
         
-        # 提取该小时的所有嵌入向量
+        # Extract all embeddings for this hour
         embeddings = group[embedding_cols].values
         
-        # 根据聚合方法计算
+        # Calculate based on aggregation method
         if aggregation_method == 'mean':
             aggregated_embedding = mean_pooling(embeddings)
         elif aggregation_method == 'weighted_mean':

@@ -1,8 +1,8 @@
 """
-目标变量计算模块
+Target Variable Calculation Module
 
-计算下一小时的波动率作为预测目标。
-支持多种波动率定义方式。
+Calculate next hour volatility as prediction target.
+Support multiple volatility definition methods.
 """
 
 import pandas as pd
@@ -11,7 +11,7 @@ import logging
 from typing import Optional, Dict, Tuple
 from pathlib import Path
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'

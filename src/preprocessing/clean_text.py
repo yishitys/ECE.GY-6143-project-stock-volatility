@@ -9,7 +9,7 @@ import re
 import logging
 from typing import Optional
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -40,7 +40,7 @@ def clean_text_content(text: str) -> str:
     
     # Remove special characters (keep letters, numbers, basic punctuation)
     # Keep: letters, numbers, spaces, basic punctuation symbols
-    text = re.sub(r'[^\w\s.,!?;:()'\-'\"'  "]+', ' ', text)
+    text = re.sub(r"[^\w\s.,!?;:()'\-\"\`]+", ' ', text)
     
     # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text)
@@ -91,7 +91,7 @@ def clean_reddit_data(df: pd.DataFrame, text_column: str = 'text_content') -> pd
     empty_count = (df_cleaned['text_cleaned'].str.len() == 0).sum()
     if empty_count > 0:
         logger.warning(f"Found {empty_count} posts with empty text after cleaning")
-        # 可以选择移除或保留这些行，这里保留但标记为空
+        # Can choose to remove or keep these rows, here we keep but mark as empty
     
     return df_cleaned
 
@@ -138,6 +138,3 @@ def normalize_text(text: str) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     
     return text
-
-
-

@@ -55,24 +55,24 @@ def load_and_clean_reddit_data(
     save_cleaned: bool = True
 ) -> pd.DataFrame:
     """
-    加载并清洗Reddit数据
+    Load and clean Reddit data
     
     Args:
-        subreddits: 子版块列表
-        data_dir: Reddit数据目录
-        start_date: 开始日期
-        end_date: 结束日期
-        output_dir: 输出目录
-        save_cleaned: 是否保存清洗后的数据
+        subreddits: List of subreddits
+        data_dir: Reddit data directory
+        start_date: Start date
+        end_date: End date
+        output_dir: Output directory
+        save_cleaned: Whether to save cleaned data
     
     Returns:
-        清洗后的Reddit数据DataFrame
+        Cleaned Reddit data DataFrame
     """
     logger.info("="*60)
     logger.info("Step 1: Loading and cleaning Reddit data")
     logger.info("="*60)
     
-    # 加载Reddit数据
+    # Load Reddit data
     reddit_df = load_multiple_subreddits(
         subreddits=subreddits,
         data_dir=data_dir,
@@ -87,10 +87,10 @@ def load_and_clean_reddit_data(
     
     logger.info(f"Loaded {len(reddit_df)} Reddit posts")
     
-    # 清洗文本
+    # Clean text
     reddit_df = clean_reddit_data(reddit_df, text_column='text_content')
     
-    # 保存清洗后的数据（可选）
+    # Save cleaned data (optional)
     if save_cleaned:
         os.makedirs(output_dir, exist_ok=True)
         cleaned_path = os.path.join(output_dir, 'reddit_cleaned.csv')
@@ -107,22 +107,22 @@ def load_stock_data_for_symbol(
     end_date: str = '2021-12-31'
 ) -> pd.DataFrame:
     """
-    加载股票价格数据
+    Load stock price data
     
     Args:
-        symbol: 股票代码
-        data_dir: 股票数据目录
-        start_date: 开始日期
-        end_date: 结束日期
+        symbol: Stock symbol
+        data_dir: Stock data directory
+        start_date: Start date
+        end_date: End date
     
     Returns:
-        股票价格数据DataFrame
+        Stock price data DataFrame
     """
     logger.info("="*60)
     logger.info(f"Step 2: Loading stock data for {symbol}")
     logger.info("="*60)
     
-    # 尝试从本地文件加载
+    # Try to load from local file
     stock_file = os.path.join(data_dir, f"{symbol}_2021.csv")
     
     if os.path.exists(stock_file):
@@ -130,7 +130,7 @@ def load_stock_data_for_symbol(
         stock_df = pd.read_csv(stock_file)
         stock_df['timestamp'] = pd.to_datetime(stock_df['timestamp'])
         
-        # 确保时区是UTC
+        # Ensure timezone is UTC
         if stock_df['timestamp'].dt.tz is None:
             stock_df['timestamp'] = stock_df['timestamp'].dt.tz_localize('UTC')
         else:
@@ -142,7 +142,7 @@ def load_stock_data_for_symbol(
         logger.warning(f"Stock file not found: {stock_file}")
         logger.info("Attempting to download from API...")
         
-        # 如果文件不存在，尝试下载
+        # If file doesn't exist, try to download
         stock_df = download_stock_data(
             symbol=symbol,
             start_date=start_date,
@@ -150,7 +150,7 @@ def load_stock_data_for_symbol(
         )
         
         if stock_df is not None and not stock_df.empty:
-            # 保存下载的数据
+            # Save downloaded data
             os.makedirs(data_dir, exist_ok=True)
             stock_df.to_csv(stock_file, index=False)
             logger.info(f"Saved downloaded data to {stock_file}")
@@ -170,34 +170,34 @@ def preprocess_data(
     fill_method: str = 'forward'
 ) -> pd.DataFrame:
     """
-    完整的预处理流程
+    Complete preprocessing pipeline
     
     Args:
-        stock_symbol: 股票代码
-        subreddits: Reddit子版块列表，如果为None则使用默认列表
-        start_date: 开始日期
-        end_date: 结束日期
-        reddit_data_dir: Reddit数据目录
-        stock_data_dir: 股票数据目录
-        output_dir: 输出目录
-        merge_type: 合并类型（'inner'或'left'）
-        fill_method: 缺失值填充方法
+        stock_symbol: Stock symbol
+        subreddits: List of subreddits, uses default list if None
+        start_date: Start date
+        end_date: End date
+        reddit_data_dir: Reddit data directory
+        stock_data_dir: Stock data directory
+        output_dir: Output directory
+        merge_type: Merge type ('inner' or 'left')
+        fill_method: Missing value fill method
     
     Returns:
-        合并后的DataFrame
+        Merged DataFrame
     """
     logger.info("="*60)
     logger.info(f"Starting preprocessing for {stock_symbol}")
     logger.info("="*60)
     
-    # 默认子版块列表
+    # Default subreddit list
     if subreddits is None:
         subreddits = [
             'stocks', 'wallstreetbets', 'investing', 'stockmarket',
             'options', 'pennystocks', 'gme'
         ]
     
-    # Step 1: 加载并清洗Reddit数据
+    # Step 1: Load and clean Reddit data
     reddit_df = load_and_clean_reddit_data(
         subreddits=subreddits,
         data_dir=reddit_data_dir,
@@ -211,7 +211,7 @@ def preprocess_data(
         logger.error("Failed to load Reddit data")
         return pd.DataFrame()
     
-    # Step 2: 按小时聚合Reddit数据
+    # Step 2: Group Reddit data by hour
     logger.info("="*60)
     logger.info("Step 3: Grouping Reddit data by hour")
     logger.info("="*60)
@@ -222,7 +222,7 @@ def preprocess_data(
         logger.error("Failed to group Reddit data by hour")
         return pd.DataFrame()
     
-    # Step 3: 加载股票价格数据
+    # Step 3: Load stock price data
     stock_df = load_stock_data_for_symbol(
         symbol=stock_symbol,
         data_dir=stock_data_dir,
@@ -234,7 +234,7 @@ def preprocess_data(
         logger.error(f"Failed to load stock data for {stock_symbol}")
         return pd.DataFrame()
     
-    # Step 4: 对齐股票数据到小时级
+    # Step 4: Align stock data to hourly intervals
     logger.info("="*60)
     logger.info("Step 4: Aligning stock data to hourly intervals")
     logger.info("="*60)
@@ -245,7 +245,7 @@ def preprocess_data(
         logger.error("Failed to align stock data to hourly intervals")
         return pd.DataFrame()
     
-    # Step 5: 合并数据
+    # Step 5: Merge data
     logger.info("="*60)
     logger.info("Step 5: Merging Reddit and stock data")
     logger.info("="*60)
@@ -261,17 +261,17 @@ def preprocess_data(
         logger.error("Failed to merge data")
         return pd.DataFrame()
     
-    # Step 6: 添加数据可用性标志
+    # Step 6: Add data availability flags
     merged_df = add_data_availability_flags(merged_df)
     
-    # Step 7: 处理缺失值
+    # Step 7: Handle missing values
     logger.info("="*60)
     logger.info("Step 6: Handling missing values")
     logger.info("="*60)
     
     merged_df = handle_missing_values(merged_df, fill_method=fill_method)
     
-    # Step 8: 验证数据
+    # Step 8: Validate data
     logger.info("="*60)
     logger.info("Step 7: Validating merged data")
     logger.info("="*60)
@@ -281,7 +281,7 @@ def preprocess_data(
     if not is_valid:
         logger.warning("Data validation found issues, but continuing...")
     
-    # Step 9: 保存结果
+    # Step 9: Save results
     logger.info("="*60)
     logger.info("Step 8: Saving merged data")
     logger.info("="*60)
@@ -291,7 +291,7 @@ def preprocess_data(
     merged_df.to_csv(output_file, index=False)
     logger.info(f"Saved merged data to {output_file}")
     
-    # Step 10: 生成预处理报告
+    # Step 10: Generate preprocessing report
     logger.info("="*60)
     logger.info("Step 9: Generating preprocessing report")
     logger.info("="*60)
@@ -314,61 +314,61 @@ def preprocess_data(
 
 
 def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description='预处理Reddit和股票数据')
+    """Main function"""
+    parser = argparse.ArgumentParser(description='Preprocess Reddit and stock data')
     parser.add_argument(
         '--stock',
         type=str,
         required=True,
-        help='股票代码（例如：GME, AMC, TSLA）'
+        help='Stock symbol (e.g., GME, AMC, TSLA)'
     )
     parser.add_argument(
         '--subreddits',
         nargs='+',
         default=None,
-        help='Reddit子版块列表（例如：stocks wallstreetbets）。如果不指定，将使用默认列表'
+        help='List of subreddits (e.g., stocks wallstreetbets). Uses default list if not specified'
     )
     parser.add_argument(
         '--start-date',
         default='2021-01-01',
-        help='开始日期 (YYYY-MM-DD)，默认：2021-01-01'
+        help='Start date (YYYY-MM-DD), default: 2021-01-01'
     )
     parser.add_argument(
         '--end-date',
         default='2021-12-31',
-        help='结束日期 (YYYY-MM-DD)，默认：2021-12-31'
+        help='End date (YYYY-MM-DD), default: 2021-12-31'
     )
     parser.add_argument(
         '--reddit-data-dir',
         default='data/raw',
-        help='Reddit数据目录，默认：data/raw'
+        help='Reddit data directory, default: data/raw'
     )
     parser.add_argument(
         '--stock-data-dir',
         default='data/stock_prices',
-        help='股票数据目录，默认：data/stock_prices'
+        help='Stock data directory, default: data/stock_prices'
     )
     parser.add_argument(
         '--output-dir',
         default='data/processed',
-        help='输出目录，默认：data/processed'
+        help='Output directory, default: data/processed'
     )
     parser.add_argument(
         '--merge-type',
         choices=['inner', 'left'],
         default='inner',
-        help='合并类型：inner（内连接）或left（左连接），默认：inner'
+        help='Merge type: inner (inner join) or left (left join), default: inner'
     )
     parser.add_argument(
         '--fill-method',
         choices=['forward', 'backward', 'zero', 'mean', 'drop'],
         default='forward',
-        help='缺失值填充方法，默认：forward'
+        help='Missing value fill method, default: forward'
     )
     
     args = parser.parse_args()
     
-    # 执行预处理
+    # Execute preprocessing
     merged_df = preprocess_data(
         stock_symbol=args.stock,
         subreddits=args.subreddits,

@@ -486,7 +486,7 @@ The LSTM model achieves excellent predictive performance on volatility forecasti
 ## Contact
 
 - Yishi Tang
-- Yuxin
+- Yuxin Ren
 
 ---
 

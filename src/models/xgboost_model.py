@@ -22,7 +22,7 @@ except ImportError:
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class XGBoostVolatilityModel:
-    """XGBoost波动率预测模型"""
+    """XGBoost volatility prediction model"""
     
     def __init__(
         self,
@@ -42,19 +42,19 @@ class XGBoostVolatilityModel:
         random_state: int = 42
     ):
         """
-        初始化XGBoost模型
+        Initialize XGBoost model
         
         Args:
-            params: XGBoost参数字典（如果提供则覆盖其他参数）
-            n_estimators: 树的数量
-            max_depth: 树的最大深度
-            learning_rate: 学习率
-            random_state: 随机种子
+            params: XGBoost parameter dictionary (overrides other parameters if provided)
+            n_estimators: Number of boosting rounds
+            max_depth: Maximum tree depth
+            learning_rate: Learning rate
+            random_state: Random seed
         """
         if not XGBOOST_AVAILABLE:
             raise ImportError("XGBoost is required. Install it: pip install xgboost")
         
-        # 默认参数
+        # Default parameters
         default_params = {
             'objective': 'reg:squarederror',
             'max_depth': max_depth,
@@ -79,7 +79,7 @@ class XGBoostVolatilityModel:
         self.feature_names = None
         self.feature_importance = None
         
-        logger.info(f"XGBoost模型初始化完成，参数: {self.params}")
+        logger.info(f"XGBoost model initialized with parameters: {self.params}")
     
     def prepare_features(
         self,
@@ -88,35 +88,35 @@ class XGBoostVolatilityModel:
         exclude_cols: List[str] = None
     ) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        准备特征和目标变量
+        Prepare features and target variable
         
         Args:
-            df: 特征DataFrame
-            target_col: 目标变量列名
-            exclude_cols: 要排除的列名列表
+            df: Feature DataFrame
+            target_col: Target variable column name
+            exclude_cols: List of columns to exclude
         
         Returns:
-            (特征DataFrame, 目标变量Series)
+            (Feature DataFrame, Target variable Series)
         """
         if exclude_cols is None:
             exclude_cols = ['timestamp', 'stock_symbol', 'has_reddit_data', 'has_stock_data']
         
-        # 添加目标变量到排除列表
+        # Add target variable to exclusion list
         exclude_cols = exclude_cols + [col for col in df.columns if col.startswith('target_')]
         
-        # 选择特征列
+        # Select feature columns
         feature_cols = [col for col in df.columns if col not in exclude_cols]
         
         X = df[feature_cols].copy()
         y = df[target_col].copy()
         
-        # 删除包含NaN的行
+        # Remove rows with NaN values
         valid_mask = ~(X.isnull().any(axis=1) | y.isnull())
         X = X[valid_mask]
         y = y[valid_mask]
         
-        logger.info(f"准备特征: {len(feature_cols)} 个特征, {len(X)} 个样本")
-        logger.info(f"目标变量统计: mean={y.mean():.6f}, std={y.std():.6f}")
+        logger.info(f"Features prepared: {len(feature_cols)} features, {len(X)} samples")
+        logger.info(f"Target variable statistics: mean={y.mean():.6f}, std={y.std():.6f}")
         
         self.feature_names = feature_cols
         
@@ -132,30 +132,30 @@ class XGBoostVolatilityModel:
         verbose: bool = True
     ):
         """
-        训练模型
+        Train the model
         
         Args:
-            X_train: 训练特征
-            y_train: 训练目标
-            X_val: 验证特征（可选）
-            y_val: 验证目标（可选）
-            early_stopping_rounds: 早停轮数
-            verbose: 是否显示训练过程
+            X_train: Training features
+            y_train: Training target
+            X_val: Validation features (optional)
+            y_val: Validation target (optional)
+            early_stopping_rounds: Number of rounds for early stopping
+            verbose: Whether to show training progress
         """
-        logger.info("开始训练XGBoost模型...")
+        logger.info("Starting XGBoost model training...")
         
-        # 准备验证集
+        # Prepare validation set
         eval_set = None
         if X_val is not None and y_val is not None:
             eval_set = [(X_train, y_train), (X_val, y_val)]
         
-        # 创建模型（XGBoost 3.x: early_stopping_rounds goes in constructor)
+        # Create model (XGBoost 3.x: early_stopping_rounds goes in constructor)
         model_params = self.params.copy()
         if eval_set and early_stopping_rounds:
             model_params['early_stopping_rounds'] = early_stopping_rounds
         self.model = xgb.XGBRegressor(**model_params)
         
-        # 训练
+        # Train
         self.model.fit(
             X_train,
             y_train,
@@ -163,27 +163,27 @@ class XGBoostVolatilityModel:
             verbose=verbose
         )
         
-        # 计算特征重要性
+        # Calculate feature importance
         self.feature_importance = pd.DataFrame({
             'feature': self.feature_names,
             'importance': self.model.feature_importances_
         }).sort_values('importance', ascending=False)
         
-        logger.info("模型训练完成")
-        logger.info(f"最佳迭代次数: {self.model.best_iteration if hasattr(self.model, 'best_iteration') else self.params['n_estimators']}")
+        logger.info("Model training completed")
+        logger.info(f"Best iteration: {self.model.best_iteration if hasattr(self.model, 'best_iteration') else self.params['n_estimators']}")
     
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """
-        预测
+        Make predictions
         
         Args:
-            X: 特征DataFrame
+            X: Feature DataFrame
         
         Returns:
-            预测值数组
+            Array of predictions
         """
         if self.model is None:
-            raise ValueError("模型尚未训练，请先调用train()方法")
+            raise ValueError("Model has not been trained yet. Please call train() first")
         
         return self.model.predict(X)
     
@@ -193,14 +193,14 @@ class XGBoostVolatilityModel:
         y: pd.Series
     ) -> Dict[str, float]:
         """
-        评估模型
+        Evaluate the model
         
         Args:
-            X: 特征DataFrame
-            y: 真实目标值
+            X: Feature DataFrame
+            y: Ground truth target values
         
         Returns:
-            评估指标字典
+            Dictionary of evaluation metrics
         """
         y_pred = self.predict(X)
         
@@ -211,8 +211,8 @@ class XGBoostVolatilityModel:
             'mape': np.mean(np.abs((y - y_pred) / (y + 1e-8))) * 100
         }
         
-        # 方向准确率（预测波动率增加/减少的方向）
-        # 注意：不能用 pandas 对齐索引比较（会引入大量 NaN），用位置对齐的 numpy diff
+        # Directional accuracy (predicting increase/decrease in volatility)
+        # Note: Cannot use pandas index alignment for comparison (causes many NaNs), use position-aligned numpy diff
         y_arr = np.asarray(y)
         y_diff = np.diff(y_arr)
         y_pred_diff = np.diff(np.asarray(y_pred))
@@ -222,43 +222,43 @@ class XGBoostVolatilityModel:
             directional_accuracy = 0.0
         metrics['directional_accuracy'] = directional_accuracy
         
-        logger.info("模型评估结果:")
+        logger.info("Model evaluation results:")
         logger.info(f"  RMSE: {metrics['rmse']:.6f}")
         logger.info(f"  MAE: {metrics['mae']:.6f}")
         logger.info(f"  R²: {metrics['r2']:.4f}")
         logger.info(f"  MAPE: {metrics['mape']:.2f}%")
-        logger.info(f"  方向准确率: {metrics['directional_accuracy']:.2f}%")
+        logger.info(f"  Directional accuracy: {metrics['directional_accuracy']:.2f}%")
         
         return metrics
     
     def get_feature_importance(self, top_n: int = 20) -> pd.DataFrame:
         """
-        获取特征重要性
+        Get feature importance
         
         Args:
-            top_n: 返回前N个重要特征
+            top_n: Return top N important features
         
         Returns:
-            特征重要性DataFrame
+            Feature importance DataFrame
         """
         if self.feature_importance is None:
-            raise ValueError("模型尚未训练")
+            raise ValueError("Model has not been trained yet")
         
         return self.feature_importance.head(top_n)
     
     def save(self, filepath: str):
         """
-        保存模型
+        Save the model
         
         Args:
-            filepath: 保存路径
+            filepath: Path to save the model
         """
         if self.model is None:
-            raise ValueError("模型尚未训练")
+            raise ValueError("Model has not been trained yet")
         
         Path(filepath).parent.mkdir(parents=True, exist_ok=True)
         
-        # 保存模型和元数据
+        # Save model and metadata
         model_data = {
             'model': self.model,
             'params': self.params,
@@ -269,52 +269,52 @@ class XGBoostVolatilityModel:
         with open(filepath, 'wb') as f:
             pickle.dump(model_data, f)
         
-        logger.info(f"模型已保存到: {filepath}")
+        logger.info(f"Model saved to: {filepath}")
     
     @classmethod
     def load(cls, filepath: str) -> 'XGBoostVolatilityModel':
         """
-        加载模型
+        Load the model
         
         Args:
-            filepath: 模型文件路径
+            filepath: Path to the model file
         
         Returns:
-            XGBoostVolatilityModel实例
+            XGBoostVolatilityModel instance
         """
         with open(filepath, 'rb') as f:
             model_data = pickle.load(f)
         
-        # 创建模型实例
+        # Create model instance
         instance = cls(params=model_data['params'])
         instance.model = model_data['model']
         instance.feature_names = model_data['feature_names']
         instance.feature_importance = model_data['feature_importance']
         
-        logger.info(f"模型已从 {filepath} 加载")
+        logger.info(f"Model loaded from {filepath}")
         
         return instance
 
 
 if __name__ == '__main__':
-    # 测试代码
+    # Test code
     import sys
     import os
     
-    # 添加src目录到路径
+    # Add src directory to path
     src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if src_dir not in sys.path:
         sys.path.insert(0, src_dir)
     
-    # 加载特征数据
+    # Load feature data
     data_path = 'data/processed/features_GME.csv'
     if os.path.exists(data_path):
         df = pd.read_csv(data_path, parse_dates=['timestamp'])
-        logger.info(f"加载数据: {len(df)} 条记录")
+        logger.info(f"Data loaded: {len(df)} records")
         
-        # 创建模型
+        # Create model
         model = XGBoostVolatilityModel(
-            n_estimators=50,  # 测试时使用较小的值
+            n_estimators=50,  # Use smaller value for testing
             max_depth=5,
             learning_rate=0.1
         )

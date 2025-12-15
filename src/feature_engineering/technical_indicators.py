@@ -1,7 +1,7 @@
 """
-技术指标计算模块
+Technical Indicators Calculation Module
 
-计算股票技术指标：移动平均、RSI、MACD、波动率等。
+Calculate stock technical indicators: moving averages, RSI, MACD, volatility, etc.
 """
 
 import pandas as pd
@@ -9,7 +9,7 @@ import numpy as np
 import logging
 from typing import Optional, List, Dict
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -83,7 +83,7 @@ def calculate_rsi(df: pd.DataFrame, price_col: str, window: int = 14) -> pd.Seri
     gain = (delta.where(delta > 0, 0)).rolling(window=window, min_periods=1).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=window, min_periods=1).mean()
     
-    rs = gain / (loss + 1e-10)  # 避免除零
+    rs = gain / (loss + 1e-10)  # Avoid division by zero
     rsi = 100 - (100 / (1 + rs))
     
     return rsi
@@ -97,17 +97,17 @@ def calculate_macd(
     signal: int = 9
 ) -> pd.DataFrame:
     """
-    计算MACD指标 (Moving Average Convergence Divergence)
+    Calculate MACD indicator (Moving Average Convergence Divergence)
     
     Args:
-        df: 包含价格数据的DataFrame
-        price_col: 价格列名
-        fast: 快速EMA周期，默认12
-        slow: 慢速EMA周期，默认26
-        signal: 信号线EMA周期，默认9
+        df: DataFrame containing price data
+        price_col: Price column name
+        fast: Fast EMA period, default 12
+        slow: Slow EMA period, default 26
+        signal: Signal line EMA period, default 9
     
     Returns:
-        包含MACD、信号线和柱状图的DataFrame
+        DataFrame with MACD, signal line, and histogram
     """
     ema_fast = calculate_ema(df, price_col, fast)
     ema_slow = calculate_ema(df, price_col, slow)
@@ -133,17 +133,17 @@ def calculate_atr(
     window: int = 14
 ) -> pd.Series:
     """
-    计算平均真实波幅 (Average True Range, ATR)
+    Calculate Average True Range (ATR)
     
     Args:
-        df: 包含价格数据的DataFrame
-        high_col: 最高价列名
-        low_col: 最低价列名
-        close_col: 收盘价列名
-        window: 窗口大小，默认14
+        df: DataFrame containing price data
+        high_col: High price column name
+        low_col: Low price column name
+        close_col: Close price column name
+        window: Window size, default 14
     
     Returns:
-        ATR序列
+        ATR series
     """
     high_low = df[high_col] - df[low_col]
     high_close = np.abs(df[high_col] - df[close_col].shift(1))
